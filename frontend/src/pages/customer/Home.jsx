@@ -1,0 +1,38 @@
+import React from "react";
+import CategorySidebar from "../../components/category/CategorySidebar";
+import HeroBanner from "../../components/home/HeroBanner";
+import FeatureCards from "../../components/home/FeatureCards";
+import ProductGrid from "../../components/product/ProductGrid";
+import TrendingProducts from "../../components/product/TrendingProducts";
+
+export default function Home({ searchQuery }) {
+  return (
+    <div className="max-w-[1600px] mx-auto mt-6 px-6">
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-3">
+          <CategorySidebar />
+        </div>
+
+        <div className="col-span-9">
+          <HeroBanner />
+        </div>
+
+        <div className="col-span-12">
+          <FeatureCards />
+        </div>
+
+        {/* ProductGrid-এ searchQuery পাঠানো হলো */}
+        <div className="col-span-12">
+          <div id="products">
+            <ProductGrid searchQuery={searchQuery} />
+          </div>
+        </div>
+
+        <div className="col-span-12">
+          <TrendingProducts />
+        </div>
+
+      </div>
+    </div>
+  );
+}
