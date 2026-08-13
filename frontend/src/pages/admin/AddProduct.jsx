@@ -7,82 +7,124 @@ export default function AddProduct() {
     name: "",
     category: "Fresh Fruits",
     price: "",
+    discount: "",
+    stock: "", // স্টক ফিল্ড
     description: "",
     image: "",
   });
+
   const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/products", formData);
-      setMessage(res.data.message);
-      setFormData({ name: "", category: "Fresh Fruits", price: "", description: "", image: "" });
-    } catch (err) {
-      setMessage("Failed to add product! Please check console.");
-      console.error(err);
+      await axios.post("http://127.0.0.1:8000/api/products", formData);
+      setMessage("Product Added Successfully!");
+      setFormData({
+        name: "",
+        category: "Fresh Fruits",
+        price: "",
+        discount: "",
+        stock: "",
+        description: "",
+        image: "",
+      });
+    } catch (error) {
+      console.error("Error adding product:", error);
     }
   };
 
   return (
-    <div className="flex bg-gray-100 min-h-screen">
-      <AdminSidebar />
-      <div className="flex-1 p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Add New Product</h1>
-        
-        {message && <p className="mb-4 text-emerald-700 bg-emerald-100 p-3 rounded-xl">{message}</p>}
+    <div className="p-8 max-w-lg">
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Add New Product</h2>
 
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm max-w-lg flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Product Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            className="p-3 border rounded-xl outline-none focus:border-[#064e3b]"
-          />
+      {message && (
+        <div className="bg-emerald-100 text-emerald-700 p-3 rounded-lg mb-4">
+          {message}
+        </div>
+      )}
 
-          <select
-            value={formData.category}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="p-3 border rounded-xl outline-none focus:border-[#064e3b] bg-white"
-          >
-            <option value="Fresh Fruits">Fresh Fruits</option>
-            <option value="Fresh Vegetables">Fresh Vegetables</option>
-            <option value="Fish">Fish</option>
-            <option value="Meat">Meat</option>
-            <option value="Grocery">Grocery</option>
-          </select>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <input
+          type="text"
+          name="name"
+          placeholder="Product Name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
 
-          <input
-            type="number"
-            placeholder="Price (৳)"
-            value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-            required
-            className="p-3 border rounded-xl outline-none focus:border-[#064e3b]"
-          />
+        <select
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="Fresh Fruits">Fresh Fruits</option>
+          <option value="Vegetables">Vegetables</option>
+          <option value="Meat">Meat</option>
+        </select>
 
-          <textarea
-            placeholder="Product Description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="p-3 border rounded-xl outline-none focus:border-[#064e3b]"
-          />
+        <input
+          type="number"
+          name="price"
+          placeholder="Original Price (e.g. 500)"
+          value={formData.price}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
 
-          <input
-            type="text"
-            placeholder="Image URL"
-            value={formData.image}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-            className="p-3 border rounded-xl outline-none focus:border-[#064e3b]"
-          />
+        <input
+          type="number"
+          name="discount"
+          placeholder="Discount % (e.g. 15)"
+          value={formData.discount}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
 
-          <button type="submit" className="bg-[#064e3b] text-white py-3 rounded-xl font-semibold hover:bg-emerald-900 cursor-pointer">
-            Save Product
-          </button>
-        </form>
-      </div>
+        {/* Stock Quantity Field */}
+        <input
+          type="number"
+          name="stock"
+          placeholder="Stock Quantity (e.g. 50)"
+          value={formData.stock}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+
+        <textarea
+          name="description"
+          placeholder="Product Description"
+          value={formData.description}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+
+        <input
+          type="text"
+          name="image"
+          placeholder="Image URL"
+          value={formData.image}
+          onChange={handleChange}
+          required
+          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        />
+
+        <button
+          type="submit"
+          className="bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-3 rounded-lg transition"
+        >
+          Save Product
+        </button>
+      </form>
     </div>
   );
 }

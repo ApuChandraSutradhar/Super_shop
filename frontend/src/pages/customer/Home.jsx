@@ -4,6 +4,7 @@ import HeroBanner from "../../components/home/HeroBanner";
 import FeatureCards from "../../components/home/FeatureCards";
 import ProductGrid from "../../components/product/ProductGrid";
 import TrendingProducts from "../../components/product/TrendingProducts";
+import CartDrawer from "../../components/layout/CartDrawer"; // CartDrawer Import করা হলো
 
 export default function Home({ searchQuery }) {
   return (
@@ -21,18 +22,17 @@ export default function Home({ searchQuery }) {
           <FeatureCards />
         </div>
 
-        {/* ProductGrid-এ searchQuery পাঠানো হলো */}
         <div className="col-span-12">
-          <div id="products">
-            <ProductGrid searchQuery={searchQuery} />
-          </div>
+          <ProductGrid />
         </div>
 
         <div className="col-span-12">
           <TrendingProducts />
         </div>
-
       </div>
+
+      {/* কাস্টমার '+' ক্লিক করলে কার্ট স্লাইডবার শো করার জন্য */}
+      <CartDrawer />
     </div>
   );
 }
