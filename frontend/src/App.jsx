@@ -4,8 +4,10 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 // Layout & Customer Pages Imports
 import CustomerLayout from "./layouts/CustomerLayout";
 import Home from "./pages/customer/Home";
+import ProfilePage from "./pages/customer/ProfilePage";
+import OrdersPage from "./pages/customer/OrdersPage";
 
-// Import Wishlist from its new location in components/layout
+// Import Wishlist from components/layout/Wishlist
 import Wishlist from "./components/layout/Wishlist";
 
 // Context Providers Imports
@@ -35,7 +37,7 @@ export default function App() {
             <CartDrawer />
 
             <Routes>
-              {/* Customer Home Route */}
+              {/* Home Route */}
               <Route
                 path="/"
                 element={
@@ -45,7 +47,27 @@ export default function App() {
                 }
               />
 
-              {/* Customer Wishlist Route */}
+              {/* Profile Route */}
+              <Route
+                path="/profile"
+                element={
+                  <CustomerLayout>
+                    <ProfilePage />
+                  </CustomerLayout>
+                }
+              />
+
+              {/* My Orders Route */}
+              <Route
+                path="/orders"
+                element={
+                  <CustomerLayout>
+                    <OrdersPage />
+                  </CustomerLayout>
+                }
+              />
+
+              {/* Wishlist Route */}
               <Route
                 path="/wishlist"
                 element={
@@ -55,7 +77,7 @@ export default function App() {
                 }
               />
 
-              {/* Customer Checkout Route */}
+              {/* Checkout Route */}
               <Route
                 path="/checkout"
                 element={

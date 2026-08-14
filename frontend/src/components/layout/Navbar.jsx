@@ -5,6 +5,7 @@ import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext"; // Import Wishlist Context
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
+import SidebarDrawer from "../SidebarDrawer"; // Import Sidebar Drawer
 
 import {
   FiMenu,
@@ -25,6 +26,7 @@ export default function Navbar() {
 
   const [term, setTerm] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar state
   const [user, setUser] = useState(null);
 
   // Check stored user data from localStorage
@@ -76,7 +78,11 @@ export default function Navbar() {
           
           {/* Left Brand Section */}
           <div className="flex items-center gap-5">
-            <button className="text-3xl text-gray-700 hover:text-[#064e3b] cursor-pointer">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="text-3xl text-gray-700 hover:text-[#064e3b] cursor-pointer transition-colors"
+              title="Open Menu"
+            >
               <FiMenu />
             </button>
             <div
@@ -194,7 +200,12 @@ export default function Navbar() {
         {isAuthOpen && <AuthModal closeModal={() => setIsAuthOpen(false)} />}
       </nav>
 
+      {/* Cart Drawer & Sidebar Drawer */}
       <CartDrawer />
+      <SidebarDrawer
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
     </>
   );
 }

@@ -66,8 +66,16 @@ export default function AddProduct() {
           className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
         >
           <option value="Fresh Fruits">Fresh Fruits</option>
-          <option value="Vegetables">Vegetables</option>
+          <option value="resh Vegetables"> Fresh Vegetables</option>
+          <option value="Fish">Fish</option>
           <option value="Meat">Meat</option>
+          <option value="Grocery">Grocery</option>
+          <option value="Bakery">Bakery</option>
+          <option value="Drinks">Drinks</option>
+          <option value="Beauty">Beauty</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Baby Care">Baby Care</option>
+          
         </select>
 
         <input

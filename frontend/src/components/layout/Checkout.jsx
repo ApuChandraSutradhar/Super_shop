@@ -49,11 +49,38 @@ export default function Checkout() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Fixed handleConfirmOrder (Removed premature trxId check)
+  // ✅ Order Confirmation with automatic LocalStorage saving for "My Orders"
   const handleConfirmOrder = () => {
     const generatedOrderId = "FM-" + Math.floor(100000 + Math.random() * 900000);
     setOrderId(generatedOrderId);
-    setStep(3); // Go to Order Confirmation
+
+    // অর্ডার ডাটা তৈরি করা
+    const newOrder = {
+      id: generatedOrderId,
+      date: new Date().toLocaleDateString("en-GB"),
+      items: cartItems.map((item) => {
+        const product = item?.product || {};
+        const originalPrice = Number(product?.price) || 0;
+        const discountPercent = Number(product?.discount) || 0;
+        const finalPrice = discountPercent > 0 ? originalPrice - (originalPrice * discountPercent) / 100 : originalPrice;
+
+        return {
+          name: product?.name || "Product Item",
+          quantity: item?.quantity || 1,
+          price: finalPrice,
+        };
+      }),
+      totalAmount: grandTotal.toFixed(2),
+      status: "Pending",
+      address: `${formData.address}, ${formData.city}`,
+      paymentMethod: paymentMethod,
+    };
+
+    // আগের অর্ডার অ্যাপেন্ড করা এবং LocalStorage-এ সেভ করা
+    const existingOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
+    localStorage.setItem("user_orders", JSON.stringify([newOrder, ...existingOrders]));
+
+    setStep(3); // Go to Order Confirmation Step
   };
 
   return (

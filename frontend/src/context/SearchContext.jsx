@@ -1,15 +1,25 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 const SearchContext = createContext();
 
 export function SearchProvider({ children }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   return (
-    <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>
+    <SearchContext.Provider
+      value={{
+        searchQuery,
+        setSearchQuery,
+        selectedCategory,
+        setSelectedCategory,
+      }}
+    >
       {children}
     </SearchContext.Provider>
   );
 }
 
-export const useSearch = () => useContext(SearchContext);
+export function useSearch() {
+  return useContext(SearchContext);
+}
