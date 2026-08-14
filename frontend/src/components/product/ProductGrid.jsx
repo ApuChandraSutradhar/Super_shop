@@ -6,7 +6,7 @@ import { useSearch } from "../../context/SearchContext";
 import { useCart } from "../../context/CartContext";
 
 export default function ProductGrid() {
-  const { searchQuery, selectedCategory } = useSearch();
+  const { searchQuery, setSearchQuery, selectedCategory, setSelectedCategory } = useSearch();
   const { addToCart } = useCart();
   const [allProducts, setAllProducts] = useState(staticProducts);
 
@@ -35,12 +35,19 @@ export default function ProductGrid() {
     fetchDatabaseProducts();
   }, []);
 
-  // 🔴 যে কোনো ক্যাটাগরিতে (এমনকি "All Categories" এ) ক্লিক করলেই প্রোডাক্ট সেকশনের সামনে স্ক্রোল করে নিয়ে যাবে
+  // ক্যাটাগরি বা সার্চ ফিল্টার হলে স্ক্রোল লজিক
   useEffect(() => {
     if (selectedCategory) {
       sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [selectedCategory]);
+
+  // Back to Home বাটন ক্লিক হ্যান্ডলার
+  const handleBackToHome = () => {
+    if (setSearchQuery) setSearchQuery("");
+    if (setSelectedCategory) setSelectedCategory("All");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Filter products based on search input and selected category
   const filteredProducts = allProducts.filter((product) => {
@@ -66,7 +73,7 @@ export default function ProductGrid() {
             ? `Search Results for "${searchQuery}"`
             : selectedCategory && selectedCategory !== "All"
             ? selectedCategory
-            : "All Products"} {/* 🟢 এখানে "Popular Products" এর জায়গায় "All Products" দেওয়া হয়েছে */}
+            : "All Products"}
         </h2>
         <p className="text-gray-500 mt-2">
           {searchQuery
@@ -75,6 +82,16 @@ export default function ProductGrid() {
             ? `Showing products for ${selectedCategory}`
             : "Fresh products specially selected for you"}
         </p>
+
+        {/* 🟢 সার্চ করার পর "Back to Home Page" বাটন শো করার লজিক */}
+        {searchQuery && (
+          <button
+            onClick={handleBackToHome}
+            className="mt-4 px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-sm rounded-full transition-all duration-300 shadow-sm flex items-center gap-2"
+          >
+            ← Back to Home Page
+          </button>
+        )}
       </div>
 
       {/* Product List Grid */}
@@ -95,6 +112,14 @@ export default function ProductGrid() {
               ? `No products found matching "${searchQuery}".`
               : `No products found in "${selectedCategory}".`}
           </p>
+          {searchQuery && (
+            <button
+              onClick={handleBackToHome}
+              className="mt-4 px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-sm rounded-full transition-all duration-300 inline-block"
+            >
+              Back to Home Page
+            </button>
+          )}
         </div>
       )}
     </section>

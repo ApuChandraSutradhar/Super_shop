@@ -8,7 +8,7 @@ export const CartProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ১. LocalStorage থেকে ইউজার ID নেওয়া
+  // ১. LocalStorage থেকে ইউজার ID নেওয়া
   const getCurrentUserId = () => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -65,7 +65,7 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
-    // ১. নিশ্চিত করা ডাটা থেকে সঠিক ID নেওয়া হচ্ছে
+    // ১. নিশ্চিত করা ডাটা থেকে সঠিক ID নেওয়া হচ্ছে
     const productId = typeof productParam === "object" 
       ? (productParam?.id || productParam?._id) 
       : productParam;
@@ -138,6 +138,13 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // 🔴 Cart ক্লিয়ার করার ফাংশন (রিলোড ছাড়াই React State ও LocalStorage খালি করবে)
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem("cartItems");
+    localStorage.removeItem("cart");
+  };
+
   // Calculate Subtotal with Discount
   const subtotal = (Array.isArray(cartItems) ? cartItems : []).reduce((acc, item) => {
     const product = item?.product || {};
@@ -166,6 +173,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         updateQuantity,
         removeItem,
+        clearCart, // 🔴 Provider-এ clearCart যুক্ত করা হলো
         subtotal,
         totalItemCount,
         loading,

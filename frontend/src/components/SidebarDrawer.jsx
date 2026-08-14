@@ -6,12 +6,12 @@ export default function SidebarDrawer({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // Local Storage থেকে লগড ইন ইউজারের ডাটা চেক করা
+  // Local Storage 
   const user = JSON.parse(localStorage.getItem("user"));
 
   const handleNavigation = (path) => {
-    onClose(); // সাইডবার বন্ধ করা
-    navigate(path); // পেজে নেভিগেট করা
+    onClose(); 
+    navigate(path);
   };
 
   const menuItems = [
@@ -43,31 +43,24 @@ export default function SidebarDrawer({ isOpen, onClose }) {
       bgColor: "bg-rose-100 text-rose-600",
       path: "/coupons",
     },
-    {
-      id: "categories",
-      label: "Categories",
-      icon: "📁",
-      bgColor: "bg-yellow-100 text-yellow-700",
-      path: "/categories",
-    },
   ];
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* ব্যাকগ্রাউন্ড ডার্ক ওভারলে (Backdrop) */}
+      {/*(Backdrop) */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
         onClick={onClose}
       />
 
-      {/* বাম পাশের স্ল্যাইডিং ড্রয়ার */}
+    
       <div className="fixed inset-y-0 left-0 max-w-full flex">
         <div className="w-80 bg-white shadow-2xl flex flex-col justify-between transition-all transform duration-300">
           
-          {/* টপ হেডার (ফিগমা ডিজাইন অনুযায়ী গ্রিন ব্যানার) */}
+        
           <div>
             <div className="bg-[#008a45] text-white p-6 relative rounded-b-3xl shadow-md">
-              {/* বন্ধ করার ক্রস বাটন */}
+            
               <button
                 type="button"
                 onClick={onClose}
@@ -101,18 +94,11 @@ export default function SidebarDrawer({ isOpen, onClose }) {
                   <p className="text-xs text-emerald-100 mt-1">
                     Sign in to access your account
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => handleNavigation("/login")}
-                    className="mt-4 bg-white text-[#008a45] font-bold px-5 py-2 rounded-full text-sm shadow hover:bg-emerald-50 transition cursor-pointer active:scale-95"
-                  >
-                    Login / Register
-                  </button>
                 </>
               )}
             </div>
 
-            {/* মেনু আইটেম লিস্ট */}
+
             <div className="p-4 mt-3 space-y-1">
               {menuItems.map((item) => (
                 <div
@@ -138,7 +124,7 @@ export default function SidebarDrawer({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* ফুটার ভার্সন টেক্সট */}
+        
           <div className="p-6 text-center border-t border-gray-100">
             <p className="text-xs text-gray-400 font-medium">
               FreshMart v2.0 © 2026

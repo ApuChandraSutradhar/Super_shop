@@ -6,6 +6,14 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
+
+// Customer Place Order
+Route::post('/place-order', [OrderController::class, 'placeOrder']);
+
+// Admin Endpoints
+Route::get('/admin/orders', [OrderController::class, 'getAllOrdersForAdmin']);
+Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateOrderStatus']);
 
 // Cart Routes
 Route::post('/cart/add', [CartController::class, 'addToCart']);
