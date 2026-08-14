@@ -1,7 +1,13 @@
 import React from "react";
 import { FiHeart, FiStar, FiPlus } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
+import { useWishlist } from "../../context/WishlistContext";
+import { useCart } from "../../context/CartContext";
 
 export default function ProductCard({ product, onAddToCart }) {
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
+
   const fallbackImage =
     "https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=400";
 
@@ -17,6 +23,19 @@ export default function ProductCard({ product, onAddToCart }) {
 
   const isAvailable = stockQty > 0;
 
+  // উইশলিস্ট আইটেম চেক করার জন্য আইডি
+  const productId = product?.id || product?._id;
+  const isFavorite = isInWishlist(productId);
+
+  // কার্ট বাটনে ক্লিক হ্যান্ডেল করা
+  const handleCartClick = () => {
+    if (onAddToCart) {
+      onAddToCart(product?.id);
+    } else {
+      addToCart(product);
+    }
+  };
+
   return (
     <div className="group relative bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between">
       <div>
@@ -29,18 +48,28 @@ export default function ProductCard({ product, onAddToCart }) {
           </div>
         )}
 
-        {/* Wishlist */}
+        {/* Wishlist Button */}
         <button
+          type="button"
+          onClick={() => toggleWishlist(product)}
           aria-label="Add to Wishlist"
-          className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-500 hover:bg-red-500 hover:text-white transition"
+          className={`absolute top-3 right-3 z-10 w-9 h-9 rounded-full shadow-sm flex items-center justify-center transition cursor-pointer ${
+            isFavorite
+              ? "bg-red-50 text-red-500"
+              : "bg-white text-gray-500 hover:bg-red-500 hover:text-white"
+          }`}
         >
-          <FiHeart size={18} />
+          {isFavorite ? (
+            <FaHeart className="text-red-500 text-lg" />
+          ) : (
+            <FiHeart size={18} />
+          )}
         </button>
 
         {/* Product Image */}
         <div className="bg-gray-50/80 h-48 w-full flex items-center justify-center p-4 relative overflow-hidden">
           <img
-            src={product?.image || fallbackImage}
+            src={product?.image || product?.image_url || fallbackImage}
             alt={product?.name || "Product Image"}
             className="w-full h-full object-contain group-hover:scale-105 transition duration-300"
             onError={(e) => {
@@ -96,12 +125,13 @@ export default function ProductCard({ product, onAddToCart }) {
           </span>
 
           <button
+            type="button"
             disabled={!isAvailable}
-            onClick={() => onAddToCart && onAddToCart(product.id)}
+            onClick={handleCartClick}
             aria-label="Add to Cart"
             className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
               isAvailable
-                ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md active:scale-95"
+                ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md active:scale-95 cursor-pointer"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >

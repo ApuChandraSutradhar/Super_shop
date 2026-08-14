@@ -8,9 +8,9 @@ export const CartProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ১. LocalStorage থেকে ডায়নামিক ভাবে লগইন করা ইউজারের ID নেওয়া
+  // ১. LocalStorage থেকে ইউজার ID নেওয়া
   const getCurrentUserId = () => {
-    const storedUser = localStorage.getItem("user"); // আপনার লগইনের সময় saved user object
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -28,7 +28,6 @@ export const CartProvider = ({ children }) => {
   const fetchCart = async () => {
     const userId = getCurrentUserId();
     
-    // ইউজার লগইন না থাকলে কার্ট খালি দেখাবে
     if (!userId) {
       setCartItems([]);
       return;
@@ -53,17 +52,26 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // ইউজার চেঞ্জ হলে (Login/Logout) অটোমেটিক কার্ট ডাটা আপডেট হবে
   useEffect(() => {
     fetchCart();
   }, [currentUserId]);
 
-  // Add item to database cart
-  const addToCart = async (productId) => {
+  // Add item to database cart (Handles both product object & ID parameter)
+  const addToCart = async (productParam) => {
     const userId = getCurrentUserId();
     
     if (!userId) {
       alert("Please log in to add items to your cart!");
+      return;
+    }
+
+    // ১. নিশ্চিত করা ডাটা থেকে সঠিক ID নেওয়া হচ্ছে
+    const productId = typeof productParam === "object" 
+      ? (productParam?.id || productParam?._id) 
+      : productParam;
+
+    if (!productId) {
+      console.error("Invalid product ID provided to addToCart.");
       return;
     }
 
@@ -74,10 +82,13 @@ export const CartProvider = ({ children }) => {
         quantity: 1,
       });
 
-      await fetchCart(); // Sync Database
+      await fetchCart(); // Sync with Database
       setIsCartOpen(true);
     } catch (error) {
       console.error("Error adding product to cart:", error);
+      if (error.response?.data) {
+        console.error("Validation error details:", error.response.data);
+      }
     }
   };
 
@@ -88,9 +99,12 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
+    // Fast UI Update
     setCartItems((prevItems) =>
       (prevItems || []).map((item) =>
-        item.cart_item_id === cartItemId ? { ...item, quantity: newQuantity } : item
+        (item.cart_item_id || item.id) === cartItemId
+          ? { ...item, quantity: newQuantity }
+          : item
       )
     );
 
@@ -108,8 +122,11 @@ export const CartProvider = ({ children }) => {
 
   // Remove single item
   const removeItem = async (cartItemId) => {
+    // Fast UI Update
     setCartItems((prevItems) =>
-      (prevItems || []).filter((item) => item.cart_item_id !== cartItemId)
+      (prevItems || []).filter(
+        (item) => (item.cart_item_id || item.id) !== cartItemId
+      )
     );
 
     try {
@@ -152,7 +169,7 @@ export const CartProvider = ({ children }) => {
         subtotal,
         totalItemCount,
         loading,
-        fetchCart, // লগইন করার সাথে সাথে কল করার জন্য
+        fetchCart,
       }}
     >
       {children}

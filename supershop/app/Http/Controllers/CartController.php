@@ -12,9 +12,9 @@ class CartController extends Controller
     public function addToCart(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_id'    => 'required|exists:users,id',
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'nullable|integer|min:1',
+            'quantity'   => 'nullable|integer|min:1',
         ]);
 
         $userId = $request->user_id;
@@ -24,8 +24,11 @@ class CartController extends Controller
         // Retrieve existing cart or create a new cart for user
         $cart = Cart::firstOrCreate(['user_id' => $userId]);
 
+        // Cart ID নেওয়া
+        $cartId = $cart->cart_id;
+
         // Check if item already exists in cart_items
-        $cartItem = CartItem::where('cart_id', $cart->cart_id)
+        $cartItem = CartItem::where('cart_id', $cartId)
             ->where('product_id', $productId)
             ->first();
 
@@ -34,21 +37,21 @@ class CartController extends Controller
             $cartItem->save();
         } else {
             CartItem::create([
-                'cart_id' => $cart->cart_id,
+                'cart_id'    => $cartId,
                 'product_id' => $productId,
-                'quantity' => $quantity,
+                'quantity'   => $quantity,
             ]);
         }
 
-        // Fetch updated cart with products
-        $updatedCart = Cart::where('cart_id', $cart->cart_id)
+        // Fetch updated cart with items and products (id বাদ দিয়ে কেবল cart_id দিয়ে খোঁজা)
+        $updatedCart = Cart::where('cart_id', $cartId)
             ->with('items.product')
             ->first();
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => 'Product added to cart successfully',
-            'cart' => $updatedCart,
+            'cart'    => $updatedCart,
         ], 200);
     }
 
@@ -69,7 +72,7 @@ class CartController extends Controller
     {
         $request->validate([
             'cart_item_id' => 'required',
-            'quantity' => 'required|integer|min:1',
+            'quantity'     => 'required|integer|min:1',
         ]);
 
         $cartItem = CartItem::where('cart_item_id', $request->cart_item_id)->first();
@@ -79,7 +82,7 @@ class CartController extends Controller
             $cartItem->save();
 
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Quantity updated successfully'
             ], 200);
         }
@@ -94,7 +97,7 @@ class CartController extends Controller
 
         if ($deleted) {
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Item removed from cart successfully'
             ], 200);
         }

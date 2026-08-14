@@ -1,37 +1,90 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// Layout & Customer Pages Imports
 import CustomerLayout from "./layouts/CustomerLayout";
 import Home from "./pages/customer/Home";
+
+// Import Wishlist from its new location in components/layout
+import Wishlist from "./components/layout/Wishlist";
+
+// Context Providers Imports
 import { SearchProvider } from "./context/SearchContext";
+import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
+
+// Global Layout Components Imports
 import CartDrawer from "./components/layout/CartDrawer";
+import Checkout from "./components/layout/Checkout";
+
+// Admin Panel Imports
 import Dashboard from "./pages/admin/Dashboard";
 import AddProduct from "./pages/admin/AddProduct";
 
+// Delivery Panel Imports
 import DeliveryDashboard from "./pages/delivery/DeliveryDashboard";
 
 export default function App() {
   return (
+    // Global context providers wrapper
     <SearchProvider>
-      <Router>
-        <Routes>
-          {/* Customer Panel */}
-          <Route
-            path="/"
-            element={
-              <CustomerLayout>
-                <Home />
-              </CustomerLayout>
-            }
-          />
+      <CartProvider>
+        <WishlistProvider>
+          <Router>
+            {/* Global Cart Drawer */}
+            <CartDrawer />
 
-          {/* Admin Panel */}
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/add-product" element={<AddProduct />} />
+            <Routes>
+              {/* Customer Home Route */}
+              <Route
+                path="/"
+                element={
+                  <CustomerLayout>
+                    <Home />
+                  </CustomerLayout>
+                }
+              />
 
-          {/* Delivery Panel */}
-          <Route path="/delivery" element={<DeliveryDashboard />} />
-        </Routes>
-      </Router>
+              {/* Customer Wishlist Route */}
+              <Route
+                path="/wishlist"
+                element={
+                  <CustomerLayout>
+                    <Wishlist />
+                  </CustomerLayout>
+                }
+              />
+
+              {/* Customer Checkout Route */}
+              <Route
+                path="/checkout"
+                element={
+                  <CustomerLayout>
+                    <Checkout />
+                  </CustomerLayout>
+                }
+              />
+
+              {/* Admin Panel Routes */}
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin/add-product" element={<AddProduct />} />
+
+              {/* Delivery Panel Route */}
+              <Route path="/delivery" element={<DeliveryDashboard />} />
+
+              {/* Catch-All 404 Route */}
+              <Route
+                path="*"
+                element={
+                  <div className="text-center py-20 text-xl text-gray-600 font-semibold">
+                    404 | Page Not Found
+                  </div>
+                }
+              />
+            </Routes>
+          </Router>
+        </WishlistProvider>
+      </CartProvider>
     </SearchProvider>
   );
 }

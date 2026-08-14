@@ -9,12 +9,22 @@ class Cart extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'cart_id';
-    protected $fillable = ['user_id'];
+    protected $table = 'carts';
 
-    // Relationship with CartItem model
+    // প্রাইমারি কি নির্দিষ্ট করে দেয়া হলো
+    protected $primaryKey = 'cart_id'; 
+
+    protected $fillable = [
+        'user_id',
+    ];
+
     public function items()
     {
         return $this->hasMany(CartItem::class, 'cart_id', 'cart_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
