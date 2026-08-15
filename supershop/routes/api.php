@@ -10,7 +10,7 @@ use App\Http\Controllers\OrderController;
 
 // Customer Place Order
 Route::post('/place-order', [OrderController::class, 'placeOrder']);
-
+Route::get('/user-coupons/{userId}', [OrderController::class, 'getUserCoupons']);
 // Admin Endpoints
 Route::get('/admin/orders', [OrderController::class, 'getAllOrdersForAdmin']);
 Route::put('/admin/orders/{id}/status', [OrderController::class, 'updateOrderStatus']);

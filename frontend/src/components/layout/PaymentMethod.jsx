@@ -29,27 +29,30 @@ export default function PaymentMethod({
   const handleSelectTab = (tab) => {
     setActiveTab(tab);
     if (tab === "cod") {
-      setPaymentMethod("cod");
+      setPaymentMethod("COD");
       setSubMethod("");
     } else if (tab === "mobile") {
-      setPaymentMethod("bkash");
+      setPaymentMethod("bKash");
       setSubMethod("bkash");
     } else if (tab === "cards") {
-      setPaymentMethod("card");
+      setPaymentMethod("Card");
       setSubMethod("visa");
     }
   };
 
   const handleSubSelect = (method) => {
+    const normalizedMethod = method === "bkash" ? "bKash" : method === "nagad" ? "Nagad" : "Card";
     setSubMethod(method);
-    setPaymentMethod(method);
+    setPaymentMethod(normalizedMethod);
   };
 
   // Main Pay Button Click Handler
   const handleMainConfirm = () => {
-    if (paymentMethod === "bkash") {
+    const selectedMethod = String(paymentMethod || "").toLowerCase();
+
+    if (selectedMethod === "bkash") {
       setShowBkashModal(true);
-    } else if (paymentMethod === "nagad") {
+    } else if (selectedMethod === "nagad") {
       setShowNagadModal(true);
     } else {
       onConfirm();
@@ -78,11 +81,11 @@ export default function PaymentMethod({
       const generatedTrx = "BK" + Math.floor(10000000 + Math.random() * 90000000);
       setTrxId(generatedTrx);
       setShowBkashModal(false);
-      onConfirm(); // 👈 Order Confirm Step (Step 3)
+      onConfirm(generatedTrx);
     }
   };
 
-  // Nagad Process Submission (Fixed Missing onConfirm)
+  // Nagad Process Submission
   const handleNagadSubmit = () => {
     if (!nagadNumber || nagadNumber.length < 11) {
       alert("Please enter a valid Nagad account number!");
@@ -95,7 +98,7 @@ export default function PaymentMethod({
     const generatedTrx = "NG" + Math.floor(10000000 + Math.random() * 90000000);
     setTrxId(generatedTrx);
     setShowNagadModal(false);
-    onConfirm(); // 👈 Order Confirm Step (Step 3) - এখন ঠিকমতো কাজ করবে
+    onConfirm(generatedTrx);
   };
 
   return (

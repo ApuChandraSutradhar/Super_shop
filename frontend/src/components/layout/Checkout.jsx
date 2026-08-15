@@ -10,10 +10,24 @@ export default function Checkout() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  // 🎟️ কুপন সংক্রান্ত State
+  const [appliedCoupon, setAppliedCoupon] = useState(false);
+  const [couponCode, setCouponCode] = useState("AUTO2000_OFFER");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const minPurchaseAmount = subtotal || 0;
+
   // পেজে ঢোকা মাত্রই স্ক্রিন একদম উপরে নিয়ে যাবে
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
+
+  // সাবটোটাল কম হলে কুপন অটোমেটিক রিমুভ হতে পারে
+  useEffect(() => {
+    if (subtotal < minPurchaseAmount && discountAmount > 0) {
+      setDiscountAmount(0);
+      setAppliedCoupon(false);
+    }
+  }, [subtotal, discountAmount, minPurchaseAmount]);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -49,28 +63,42 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [trxId, setTrxId] = useState("");
   const [orderId, setOrderId] = useState("");
+  const [finalGrandTotal, setFinalGrandTotal] = useState(0); // 🟢 অর্ডার কনফার্মেশনের জন্য ফিক্সড টোটাল স্টেট
 
   const deliveryFee = formData.city === "Dhaka" ? 60 : formData.city === "Outside Dhaka" ? 120 : 0;
-  const grandTotal = subtotal + deliveryFee;
+  
+  // 🟢 কুপন মাইনাস করে Grand Total হিসাব
+  const grandTotal = Math.max(0, subtotal + deliveryFee - discountAmount);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // 🎟️ কুপন এপ্লাই করার ফাংশন
+  const handleApplyCoupon = () => {
+    if (subtotal > 0) {
+      setDiscountAmount(100);
+      setAppliedCoupon(true);
+    }
+  };
+
+  // 🎟️ কুপন রিমুভ করার ফাংশন
+  const handleRemoveCoupon = () => {
+    setDiscountAmount(0);
+    setAppliedCoupon(false);
+  };
+
   // ✅ Helper Function: LocalStorage ও React Context-এর কার্ট সাথে সাথে খালি করার জন্য
   const forceClearCart = () => {
-    // ১. LocalStorage থেকে কার্ট ডাটা রিমুভ
     localStorage.removeItem("cartItems");
     localStorage.removeItem("cart");
-
-    // ২. CartContext এর clearCart ফাংশনটি দিয়ে React State খালি করা
     if (clearCart) {
       clearCart();
     }
   };
 
   // ✅ Laravel API integration with LocalStorage fallback/sync
-  const handleConfirmOrder = async () => {
+  const handleConfirmOrder = async (forcedTrxId = trxId) => {
     if (cartItems.length === 0) {
       alert("Your cart is empty!");
       return;
@@ -78,14 +106,35 @@ export default function Checkout() {
 
     setLoading(true);
 
-    // ১. ব্যাকএন্ড API এর জন্য payload তৈরি
+    // বর্তমান হিসাবটি একটি লোকাল ভ্যারিয়েবলে স্টোর করা (যেন কার্ট ক্লিয়ার হলেও মান ঠিক থাকে)
+    const currentGrandTotal = grandTotal;
+    const currentSubtotal = subtotal + deliveryFee; // ডেলিভারি চার্জ সহ মোট টাকার হিসাব
+    const currentDiscount = discountAmount;
+    setFinalGrandTotal(currentGrandTotal);
+
+    // ১. ব্যাকএন্ড API এর জন্য payload তৈরি (কুপন ও পেমেন্ট ডাটা সহ)
+    const normalizedPaymentMethod = (() => {
+      const value = String(paymentMethod || "COD").toLowerCase();
+      if (value === "cod") return "COD";
+      if (value === "bkash") return "bKash";
+      if (value === "nagad") return "Nagad";
+      if (["card", "visa", "mastercard", "amex"].includes(value)) return "Card";
+      return "COD";
+    })();
+
+    const finalTransactionId = normalizedPaymentMethod !== "COD" ? forcedTrxId || trxId || "" : null;
+
     const orderPayload = {
       customer_id: userId,
-      total_amount: subtotal,
-      discount_amount: 0.00,
-      payable_amount: grandTotal,
-      payment_method: paymentMethod,
-      transaction_id: paymentMethod !== "COD" ? trxId : null,
+      user_id: userId,
+      total_amount: currentSubtotal,
+      min_purchase_amount: subtotal,
+      discount_amount: currentDiscount,
+      payable_amount: currentGrandTotal,
+      payment_method: normalizedPaymentMethod,
+      transaction_id: finalTransactionId,
+      coupon_code: appliedCoupon ? couponCode : "AUTO2000_OFFER", // 👈 কুপন সিলেক্ট না থাকলে ডিফল্ট স্ট্রিং পাঠানো হলো
+      is_used: appliedCoupon ? 1 : 0,
       items: cartItems.map((item) => {
         const product = item?.product || item;
         const originalPrice = Number(product?.price) || 0;
@@ -106,14 +155,14 @@ export default function Checkout() {
 
       let generatedOrderId = "";
       if (response.data && response.data.success) {
-        generatedOrderId = response.data.order_number;
+        generatedOrderId = response.data.order_number || response.data.order_id;
       } else {
         generatedOrderId = "FM-" + Math.floor(100000 + Math.random() * 900000);
       }
 
       setOrderId(generatedOrderId);
 
-      // ২. LocalStorage এ সেভ করা (আপনার আগের লজিক অপরিবর্তিত)
+      // LocalStorage এ অর্ডার সেভ
       const newOrder = {
         id: generatedOrderId,
         date: new Date().toLocaleDateString("en-GB"),
@@ -129,7 +178,8 @@ export default function Checkout() {
             price: finalPrice,
           };
         }),
-        totalAmount: grandTotal.toFixed(2),
+        totalAmount: currentGrandTotal.toFixed(2),
+        discountAmount: currentDiscount.toFixed(2),
         status: "Pending",
         address: `${formData.address}, ${formData.city}`,
         paymentMethod: paymentMethod,
@@ -138,15 +188,13 @@ export default function Checkout() {
       const existingOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
       localStorage.setItem("user_orders", JSON.stringify([newOrder, ...existingOrders]));
 
-      // 🔴 কার্ট সঙ্গে সঙ্গে খালি করা (No reload required)
+      // 🔴 অর্ডার সফল হওয়ার পরেই কেবল কার্ট খালি করা হবে
       forceClearCart();
-
-      setStep(3); // Go to Order Confirmation Step
+      setStep(3);
 
     } catch (error) {
-      console.error("API Order placement failed, attempting fallback save...", error);
+      console.error("API Order placement failed, falling back local order...", error);
 
-      // ব্যাকএন্ডে কোনো সমস্যা হলে ক্লায়েন্ট সাইড যেন আটকে না থাকে
       const fallbackOrderId = "FM-" + Math.floor(100000 + Math.random() * 900000);
       setOrderId(fallbackOrderId);
 
@@ -165,7 +213,8 @@ export default function Checkout() {
             price: finalPrice,
           };
         }),
-        totalAmount: grandTotal.toFixed(2),
+        totalAmount: currentGrandTotal.toFixed(2),
+        discountAmount: currentDiscount.toFixed(2),
         status: "Pending",
         address: `${formData.address}, ${formData.city}`,
         paymentMethod: paymentMethod,
@@ -174,9 +223,7 @@ export default function Checkout() {
       const existingOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
       localStorage.setItem("user_orders", JSON.stringify([newOrder, ...existingOrders]));
 
-      // 🔴 কার্ট সঙ্গে সঙ্গে খালি করা (No reload required)
       forceClearCart();
-
       setStep(3);
     } finally {
       setLoading(false);
@@ -187,7 +234,7 @@ export default function Checkout() {
     <div className="bg-gray-50 py-4 px-3 sm:px-6 min-h-[calc(100vh-80px)]">
       <div className="max-w-5xl mx-auto">
 
-        {/* Step Progress Tracker - Compact */}
+        {/* Step Progress Tracker */}
         <div className="flex justify-center items-center mb-4">
           <div className="flex items-center space-x-3 text-xs sm:text-sm">
             <div className={`flex items-center justify-center w-7 h-7 rounded-full font-bold text-xs ${step >= 1 ? "bg-emerald-600 text-white" : "bg-gray-200 text-gray-600"}`}>1</div>
@@ -211,7 +258,7 @@ export default function Checkout() {
             orderId={orderId}
             formData={formData}
             paymentMethod={paymentMethod}
-            grandTotal={grandTotal}
+            grandTotal={finalGrandTotal}
           />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
@@ -268,10 +315,47 @@ export default function Checkout() {
                   <span>Subtotal</span>
                   <span className="font-semibold text-gray-800">৳{subtotal.toFixed(2)}</span>
                 </div>
+                
                 <div className="flex justify-between">
                   <span>Delivery Fee</span>
                   <span className="font-semibold text-gray-800">৳{deliveryFee.toFixed(2)}</span>
                 </div>
+
+                {discountAmount > 0 && (
+                  <div className="flex justify-between font-semibold text-emerald-600">
+                    <span>Discount</span>
+                    <span>-৳{discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {subtotal >= 2000 && (
+                  <div className="mt-2 pt-2 border-t border-dashed border-emerald-300 bg-emerald-50/60 p-2.5 rounded-lg">
+                    <p className="text-[11px] text-emerald-800 font-medium mb-1.5 flex items-center justify-between">
+                      <span>🎉 Eligible for ৳100 Discount!</span>
+                    </p>
+                    {!appliedCoupon ? (
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        className="w-full bg-[#008a45] hover:bg-emerald-700 text-white font-bold py-1.5 px-3 rounded text-xs transition cursor-pointer"
+                      >
+                        Apply ৳100 Coupon
+                      </button>
+                    ) : (
+                      <div className="flex justify-between items-center text-xs text-emerald-700 font-bold bg-emerald-100/80 p-1.5 rounded">
+                        <span>Coupon Applied: -৳100</span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCoupon}
+                          className="text-red-500 hover:text-red-700 text-[10px] underline ml-1 font-normal cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex justify-between text-sm font-bold text-emerald-700 border-t pt-1.5 mt-1">
                   <span>Grand Total</span>
                   <span>৳{grandTotal.toFixed(2)}</span>
