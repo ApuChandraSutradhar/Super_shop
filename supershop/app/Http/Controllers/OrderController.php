@@ -41,13 +41,48 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
+            $discountAmount = (float) ($request->discount_amount ?? 0);
+            $couponCode = trim((string) ($request->coupon_code ?? $request->coupon ?? ''));
+            $minPurchaseAmount = (float) ($request->min_purchase_amount ?? $request->total_amount ?? $request->payable_amount ?? 0);
+            $hasCouponCode = $couponCode !== '' || $discountAmount > 0;
+            $couponId = null;
+
+            if ($hasCouponCode) {
+                $couponCode = $couponCode !== '' ? $couponCode : 'AUTO2000_OFFER';
+
+                $couponId = DB::table('coupons')->where('coupon_code', (string) $couponCode)->value('coupon_id');
+
+                if ($couponId === null) {
+                    $couponId = DB::table('coupons')->insertGetId([
+                        'user_id'             => $request->customer_id,
+                        'coupon_code'         => (string) $couponCode,
+                        'discount_amount'     => $discountAmount,
+                        'min_purchase_amount' => $minPurchaseAmount,
+                        'valid_until'         => now()->addDays(30)->toDateString(),
+                        'is_used'             => (bool) ($request->is_used ?? 1),
+                        'created_at'          => now(),
+                        'updated_at'          => now(),
+                    ]);
+                } else {
+                    DB::table('coupons')->where('coupon_id', $couponId)->update([
+                        'user_id'             => $request->customer_id,
+                        'discount_amount'     => $discountAmount,
+                        'min_purchase_amount' => $minPurchaseAmount,
+                        'valid_until'         => now()->addDays(30)->toDateString(),
+                        'is_used'             => (bool) ($request->is_used ?? 1),
+                        'updated_at'          => now(),
+                    ]);
+                }
+            }
+
             // A. orders টেবিলে এনট্রি
             $order = Order::create([
                 'order_number'    => 'FM-' . rand(100000, 999999),
                 'customer_id'     => $request->customer_id,
                 'total_amount'    => $request->total_amount,
-                'discount_amount' => $request->discount_amount ?? 0.00,
+                'discount_amount' => $discountAmount,
                 'payable_amount'  => $request->payable_amount,
+                'coupon_id'       => $couponId,
                 'order_status'    => 'pending',
             ]);
 
@@ -70,29 +105,6 @@ class OrderController extends Controller
                 'transaction_id' => $request->transaction_id ?? null,
                 'amount'         => (float) $request->payable_amount,
             ]);
-
-            // 🎟️ D. coupons টেবিলে কুপন ডাটা সেভ করা (কুপন কোড থাকলে)
-            $discountAmount = (float) ($request->discount_amount ?? 0);
-            $couponCode = trim((string) ($request->coupon_code ?? $request->coupon ?? ''));
-            $minPurchaseAmount = (float) ($request->min_purchase_amount ?? $request->total_amount ?? $request->payable_amount ?? 0);
-            $hasCouponCode = $couponCode !== '' || $discountAmount > 0;
-
-            if ($hasCouponCode) {
-                $couponCode = $couponCode !== '' ? $couponCode : 'AUTO2000_OFFER';
-
-                DB::table('coupons')->updateOrInsert(
-                    ['coupon_code' => (string) $couponCode],
-                    [
-                        'user_id'             => $request->customer_id,
-                        'discount_amount'     => $discountAmount,
-                        'min_purchase_amount' => $minPurchaseAmount,
-                        'valid_until'         => now()->addDays(30)->toDateString(),
-                        'is_used'             => (bool) ($request->is_used ?? 1),
-                        'created_at'          => now(),
-                        'updated_at'          => now(),
-                    ]
-                );
-            }
 
             // 🛒 E. ডাটাবেজ থেকে কাস্টমারের Cart ডিলিট করা
             $cart = DB::table('carts')->where('user_id', $request->customer_id)->first();

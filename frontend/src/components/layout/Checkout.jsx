@@ -10,18 +10,15 @@ export default function Checkout() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // 🎟️ কুপন সংক্রান্ত State
   const [appliedCoupon, setAppliedCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState("AUTO2000_OFFER");
   const [discountAmount, setDiscountAmount] = useState(0);
   const minPurchaseAmount = subtotal || 0;
 
-  // পেজে ঢোকা মাত্রই স্ক্রিন একদম উপরে নিয়ে যাবে
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
 
-  // সাবটোটাল কম হলে কুপন অটোমেটিক রিমুভ হতে পারে
   useEffect(() => {
     if (subtotal < minPurchaseAmount && discountAmount > 0) {
       setDiscountAmount(0);
@@ -37,8 +34,8 @@ export default function Checkout() {
     notes: "",
   });
 
-  // LocalStorage থেকে লগইন ইউজারের তথ্য লোড করা
-  const [userId, setUserId] = useState(1); // ডিফল্ট ১ fallback
+  // LocalStorage
+  const [userId, setUserId] = useState(1);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -67,14 +64,13 @@ export default function Checkout() {
 
   const deliveryFee = formData.city === "Dhaka" ? 60 : formData.city === "Outside Dhaka" ? 120 : 0;
   
-  // 🟢 কুপন মাইনাস করে Grand Total হিসাব
   const grandTotal = Math.max(0, subtotal + deliveryFee - discountAmount);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 🎟️ কুপন এপ্লাই করার ফাংশন
+
   const handleApplyCoupon = () => {
     if (subtotal > 0) {
       setDiscountAmount(100);
@@ -82,13 +78,13 @@ export default function Checkout() {
     }
   };
 
-  // 🎟️ কুপন রিমুভ করার ফাংশন
+
   const handleRemoveCoupon = () => {
     setDiscountAmount(0);
     setAppliedCoupon(false);
   };
 
-  // ✅ Helper Function: LocalStorage ও React Context-এর কার্ট সাথে সাথে খালি করার জন্য
+  // ✅ Helper Function: LocalStorage ও React Context
   const forceClearCart = () => {
     localStorage.removeItem("cartItems");
     localStorage.removeItem("cart");
@@ -105,14 +101,12 @@ export default function Checkout() {
     }
 
     setLoading(true);
-
-    // বর্তমান হিসাবটি একটি লোকাল ভ্যারিয়েবলে স্টোর করা (যেন কার্ট ক্লিয়ার হলেও মান ঠিক থাকে)
     const currentGrandTotal = grandTotal;
-    const currentSubtotal = subtotal + deliveryFee; // ডেলিভারি চার্জ সহ মোট টাকার হিসাব
+    const currentSubtotal = subtotal + deliveryFee;
     const currentDiscount = discountAmount;
     setFinalGrandTotal(currentGrandTotal);
 
-    // ১. ব্যাকএন্ড API এর জন্য payload তৈরি (কুপন ও পেমেন্ট ডাটা সহ)
+    //API payload
     const normalizedPaymentMethod = (() => {
       const value = String(paymentMethod || "COD").toLowerCase();
       if (value === "cod") return "COD";
@@ -150,7 +144,7 @@ export default function Checkout() {
     };
 
     try {
-      // 🚀 Laravel Backend এ API Request পাঠানো
+      //Laravel Backend এ API Request
       const response = await axios.post("http://127.0.0.1:8000/api/place-order", orderPayload);
 
       let generatedOrderId = "";
@@ -162,7 +156,7 @@ export default function Checkout() {
 
       setOrderId(generatedOrderId);
 
-      // LocalStorage এ অর্ডার সেভ
+      // LocalStorage
       const newOrder = {
         id: generatedOrderId,
         date: new Date().toLocaleDateString("en-GB"),
@@ -188,7 +182,6 @@ export default function Checkout() {
       const existingOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
       localStorage.setItem("user_orders", JSON.stringify([newOrder, ...existingOrders]));
 
-      // 🔴 অর্ডার সফল হওয়ার পরেই কেবল কার্ট খালি করা হবে
       forceClearCart();
       setStep(3);
 

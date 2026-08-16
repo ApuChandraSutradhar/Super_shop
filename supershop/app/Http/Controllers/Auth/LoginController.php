@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 class LoginController extends Controller
 {
     /**
-     * Handle React API Login Request
+     * Handle React API Universal Login Request (Admin, Delivery, Customer)
      */
     public function login(Request $request)
     {
@@ -38,10 +38,19 @@ class LoginController extends Controller
             ], 401);
         }
 
-        // ৩. Token জেনারেট
+        // ৩. ডেলিভারি ম্যানের জন্য এপ্রুভাল চেক
+        $userRole = strtolower(trim($user->role ?? ''));
+        if ($userRole === 'delivery' && isset($user->is_approved) && !$user->is_approved) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Your delivery account is pending Admin approval!'
+            ], 403);
+        }
+
+        // ৪. Token জেনারেট
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // ৪. JSON রেসপন্স
+        // ৫. JSON রেসপন্স (সকল রোলের জন্য সফল)
         return response()->json([
             'status'       => true,
             'message'      => 'Logged in successfully!',

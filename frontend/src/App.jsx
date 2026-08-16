@@ -1,6 +1,11 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+// Context Providers Imports
+import { SearchProvider } from "./context/SearchContext";
+import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
+
 // Layout & Customer Pages Imports
 import CustomerLayout from "./layouts/CustomerLayout";
 import Home from "./pages/customer/Home";
@@ -10,25 +15,21 @@ import OrdersPage from "./pages/customer/OrdersPage";
 // Import Wishlist from components/layout/Wishlist
 import Wishlist from "./components/layout/Wishlist";
 
-// Context Providers Imports
-import { SearchProvider } from "./context/SearchContext";
-import { CartProvider } from "./context/CartContext";
-import { WishlistProvider } from "./context/WishlistContext";
-
 // Global Layout Components Imports
 import CartDrawer from "./components/layout/CartDrawer";
 import Checkout from "./components/layout/Checkout";
 
 // Admin Panel Imports
+import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AddProduct from "./pages/admin/AddProduct";
 
 // Delivery Panel Imports
+import DeliveryAuth from "./pages/delivery/DeliveryAuth";
 import DeliveryDashboard from "./pages/delivery/DeliveryDashboard";
 
 export default function App() {
   return (
-    // Global context providers wrapper
     <SearchProvider>
       <CartProvider>
         <WishlistProvider>
@@ -37,7 +38,7 @@ export default function App() {
             <CartDrawer />
 
             <Routes>
-              {/* Home Route */}
+              {/* Customer Routes */}
               <Route
                 path="/"
                 element={
@@ -47,7 +48,6 @@ export default function App() {
                 }
               />
 
-              {/* Profile Route */}
               <Route
                 path="/profile"
                 element={
@@ -57,7 +57,6 @@ export default function App() {
                 }
               />
 
-              {/* My Orders Route */}
               <Route
                 path="/orders"
                 element={
@@ -67,7 +66,6 @@ export default function App() {
                 }
               />
 
-              {/* Wishlist Route */}
               <Route
                 path="/wishlist"
                 element={
@@ -77,7 +75,6 @@ export default function App() {
                 }
               />
 
-              {/* Checkout Route */}
               <Route
                 path="/checkout"
                 element={
@@ -88,11 +85,13 @@ export default function App() {
               />
 
               {/* Admin Panel Routes */}
-              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/add-product" element={<AddProduct />} />
 
-              {/* Delivery Panel Route */}
-              <Route path="/delivery" element={<DeliveryDashboard />} />
+              {/* Delivery Panel Routes */}
+              <Route path="/delivery" element={<DeliveryAuth />} />
+              <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
 
               {/* Catch-All 404 Route */}
               <Route

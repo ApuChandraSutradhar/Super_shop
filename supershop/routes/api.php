@@ -7,6 +7,12 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\AuthController;
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/delivery/register', [AuthController::class, 'registerDelivery']);
+Route::get('/admin/pending-deliveries', [AuthController::class, 'getPendingDeliveries']);
+Route::post('/admin/approve-delivery/{id}', [AuthController::class, 'approveDelivery']);
 
 // Customer Place Order
 Route::post('/place-order', [OrderController::class, 'placeOrder']);
