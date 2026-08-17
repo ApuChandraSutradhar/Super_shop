@@ -66,12 +66,12 @@ export default function ProductCard({ product, onAddToCart }) {
           )}
         </button>
 
-        {/* Product Image */}
+        {/* Product Image Wrapper */}
         <div className="bg-gray-50/80 h-48 w-full flex items-center justify-center p-4 relative overflow-hidden">
           <img
             src={product?.image || product?.image_url || fallbackImage}
             alt={product?.name || "Product Image"}
-            className="w-full h-full object-contain group-hover:scale-105 transition duration-300"
+            className="max-h-full max-w-full object-contain rounded-2xl group-hover:scale-105 transition duration-300"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = fallbackImage;

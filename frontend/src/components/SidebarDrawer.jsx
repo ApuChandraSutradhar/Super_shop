@@ -47,19 +47,18 @@ export default function SidebarDrawer({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/*(Backdrop) */}
+      {/* (Backdrop) */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-300"
         onClick={onClose}
       />
 
-    
       <div className="fixed inset-y-0 left-0 max-w-full flex">
         <div className="w-80 bg-white shadow-2xl flex flex-col justify-between transition-all transform duration-300">
           
-        
           <div>
-            <div className="bg-[#008a45] text-white p-6 relative rounded-b-3xl shadow-md">
+            {/* Navbar-এর ব্যাকগ্রাউন্ড কালারের সাথে সামঞ্জস্য রেখে #004225 কালার কোড ব্যবহার করা হয়েছে */}
+            <div className="bg-[#004225] text-white p-6 relative rounded-b-3xl shadow-md">
             
               <button
                 type="button"
@@ -98,7 +97,6 @@ export default function SidebarDrawer({ isOpen, onClose }) {
               )}
             </div>
 
-
             <div className="p-4 mt-3 space-y-1">
               {menuItems.map((item) => (
                 <div
@@ -112,11 +110,11 @@ export default function SidebarDrawer({ isOpen, onClose }) {
                     >
                       {item.icon}
                     </div>
-                    <span className="font-semibold text-gray-700 group-hover:text-[#008a45] transition">
+                    <span className="font-semibold text-gray-700 group-hover:text-[#004225] transition">
                       {item.label}
                     </span>
                   </div>
-                  <span className="text-gray-300 group-hover:text-[#008a45] group-hover:translate-x-1 transition text-sm font-bold">
+                  <span className="text-gray-300 group-hover:text-[#004225] group-hover:translate-x-1 transition text-sm font-bold">
                     ❯
                   </span>
                 </div>
@@ -124,7 +122,6 @@ export default function SidebarDrawer({ isOpen, onClose }) {
             </div>
           </div>
 
-        
           <div className="p-6 text-center border-t border-gray-100">
             <p className="text-xs text-gray-400 font-medium">
               FreshMart v2.0 © 2026

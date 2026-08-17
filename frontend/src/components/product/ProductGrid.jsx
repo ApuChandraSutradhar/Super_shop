@@ -10,7 +10,7 @@ export default function ProductGrid() {
   const { addToCart } = useCart();
   const [allProducts, setAllProducts] = useState(staticProducts);
 
-  // সেকশনের অবস্থান ট্র্যাক করার জন্য Ref
+  // Reference for scrolling to section
   const sectionRef = useRef(null);
 
   // Fetch products from database API
@@ -35,21 +35,21 @@ export default function ProductGrid() {
     fetchDatabaseProducts();
   }, []);
 
-  // ক্যাটাগরি বা সার্চ ফিল্টার হলে স্ক্রোল লজিক
+  // Smooth scroll trigger when category changes
   useEffect(() => {
     if (selectedCategory) {
       sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [selectedCategory]);
 
-  // Back to Home বাটন ক্লিক হ্যান্ডলার
+  // Reset filters and scroll to top
   const handleBackToHome = () => {
     if (setSearchQuery) setSearchQuery("");
     if (setSelectedCategory) setSelectedCategory("All");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Filter products based on search input and selected category
+  // Filter products based on search query and selected category
   const filteredProducts = allProducts.filter((product) => {
     const matchesCategory =
       !selectedCategory ||
@@ -65,7 +65,7 @@ export default function ProductGrid() {
   });
 
   return (
-    <section ref={sectionRef} className="mt-8 px-4 scroll-mt-24">
+    <section ref={sectionRef} className="-mt-10 lg:-mt-12 px-4 scroll-mt-24 relative z-10">
       {/* Title Section */}
       <div className="flex flex-col items-center text-center mb-10 relative">
         <h2 className="text-3xl font-bold text-gray-800">
@@ -83,7 +83,7 @@ export default function ProductGrid() {
             : "Fresh products specially selected for you"}
         </p>
 
-        {/* 🟢 সার্চ করার পর "Back to Home Page" বাটন শো করার লজিক */}
+        {/* Back to Home button on active search */}
         {searchQuery && (
           <button
             onClick={handleBackToHome}

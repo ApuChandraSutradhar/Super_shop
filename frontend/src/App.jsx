@@ -11,6 +11,7 @@ import CustomerLayout from "./layouts/CustomerLayout";
 import Home from "./pages/customer/Home";
 import ProfilePage from "./pages/customer/ProfilePage";
 import OrdersPage from "./pages/customer/OrdersPage";
+import Coupons from "./pages/customer/Coupons"; // <-- Added Coupons Import
 
 // Import Wishlist from components/layout/Wishlist
 import Wishlist from "./components/layout/Wishlist";
@@ -20,9 +21,11 @@ import CartDrawer from "./components/layout/CartDrawer";
 import Checkout from "./components/layout/Checkout";
 
 // Admin Panel Imports
+import AdminLayout from "./components/admin/AdminLayout"; // Layout Component
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AddProduct from "./pages/admin/AddProduct";
+import AllProducts from "./pages/admin/AllProducts"; // <-- AllProducts Import
 
 // Delivery Panel Imports
 import DeliveryAuth from "./pages/delivery/DeliveryAuth";
@@ -75,6 +78,16 @@ export default function App() {
                 }
               />
 
+              {/* Coupons & Offers Route */}
+              <Route
+                path="/coupons"
+                element={
+                  <CustomerLayout>
+                    <Coupons />
+                  </CustomerLayout>
+                }
+              />
+
               <Route
                 path="/checkout"
                 element={
@@ -84,10 +97,15 @@ export default function App() {
                 }
               />
 
-              {/* Admin Panel Routes */}
+              {/* Admin Panel Login (Without Layout) */}
               <Route path="/admin" element={<AdminLogin />} />
-              <Route path="/admin/dashboard" element={<Dashboard />} />
-              <Route path="/admin/add-product" element={<AddProduct />} />
+
+              {/* Admin Panel Routes (With Layout: Sidebar & Top Header) */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="add-product" element={<AddProduct />} />
+                <Route path="products" element={<AllProducts />} /> {/* <-- AllProducts Route */}
+              </Route>
 
               {/* Delivery Panel Routes */}
               <Route path="/delivery" element={<DeliveryAuth />} />

@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  FiTruck,
+  FiGift,
   FiRefreshCw,
   FiShield,
   FiHeadphones,
@@ -9,9 +9,9 @@ import {
 const features = [
   {
     id: 1,
-    icon: <FiTruck size={24} />,
-    title: "Free Delivery",
-    subtitle: "Orders over ৳999",
+    icon: <FiGift size={24} />,
+    title: "100 Tk Coupon",
+    subtitle: "On orders over ৳2000",
     iconBg: "bg-emerald-100 text-emerald-600",
   },
   {
@@ -39,13 +39,13 @@ const features = [
 
 export default function FeatureCards() {
   return (
-    /* lg:-mt-28 বা lg:-mt-32 মার্জিন দিয়ে কার্ডগুলোকে ২-৩ ইঞ্চি উপরে ব্যানারের ঠিক নিচে টেনে তোলা হয়েছে */
-    <section className="mb-4 lg:ml-[320px] -mt-20 lg:-mt-46 relative z-10 pr-4">
+    /* Adjusted top margin to lift section slightly higher while keeping responsive layout */
+    <section className="mb-4 lg:ml-[320px] -mt-24 lg:-mt-52 relative z-10 pr-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {features.map((item) => (
           <div
             key={item.id}
-            className="bg-white rounded-2xl p-4 flex items-center gap-3.5 shadow-md border border-gray-100 hover:shadow-lg transition-all"
+            className="bg-white rounded-2xl px-3.5 py-8 flex items-center gap-3 shadow-md border border-gray-100 hover:shadow-lg transition-all"
           >
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${item.iconBg}`}
@@ -54,10 +54,10 @@ export default function FeatureCards() {
             </div>
 
             <div className="min-w-0">
-              <h3 className="font-bold text-sm text-gray-900 leading-snug truncate">
+              <h3 className="font-bold text-sm sm:text-base text-gray-900 leading-snug truncate">
                 {item.title}
               </h3>
-              <p className="text-gray-400 text-xs mt-0.5 truncate">
+              <p className="text-gray-500 text-xs font-medium mt-0.5 truncate">
                 {item.subtitle}
               </p>
             </div>
