@@ -7,6 +7,8 @@ import {
   FiBox, 
   FiUsers, 
   FiTruck, 
+  FiCreditCard,
+  FiBarChart2,
   FiHome,
   FiSettings,
   FiLogOut
@@ -16,23 +18,25 @@ export default function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // লিঙ্ক একটিভ কিনা চেক করার ফাংশন
+  // Check if link is active
   const isActive = (path) => location.pathname === path;
 
-  // 🔴 অ্যাডমিন লগআউট হ্যান্ডলার
+  // Admin logout handler
   const handleLogout = () => {
     localStorage.removeItem("adminUser");
     localStorage.removeItem("token");
-    navigate("/admin"); // লগআউট করলে সরাসরি Admin Portal Login পেজে নিয়ে যাবে
+    navigate("/admin");
   };
 
   const menuItems = [
     { name: "Dashboard", path: "/admin/dashboard", icon: <FiGrid size={18} /> },
     { name: "Add Product", path: "/admin/add-product", icon: <FiPlusCircle size={18} /> },
-    { name: "All Products", path: "/admin/products", icon: <FiBox size={18} /> }, // <-- /admin/products লিঙ্ক কানেক্টেড
+    { name: "All Products", path: "/admin/products", icon: <FiBox size={18} /> },
     { name: "Orders", path: "/admin/orders", icon: <FiShoppingBag size={18} /> },
     { name: "Customers", path: "/admin/customers", icon: <FiUsers size={18} /> },
     { name: "Delivery Riders", path: "/admin/delivery-riders", icon: <FiTruck size={18} /> },
+    { name: "Payments", path: "/admin/payments", icon: <FiCreditCard size={18} /> },
+    { name: "Reports", path: "/admin/reports", icon: <FiBarChart2 size={18} /> },
     { name: "Settings", path: "/admin/settings", icon: <FiSettings size={18} /> },
   ];
 

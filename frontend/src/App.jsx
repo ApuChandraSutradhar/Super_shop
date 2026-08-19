@@ -11,7 +11,7 @@ import CustomerLayout from "./layouts/CustomerLayout";
 import Home from "./pages/customer/Home";
 import ProfilePage from "./pages/customer/ProfilePage";
 import OrdersPage from "./pages/customer/OrdersPage";
-import Coupons from "./pages/customer/Coupons"; // <-- Added Coupons Import
+import Coupons from "./pages/customer/Coupons";
 
 // Import Wishlist from components/layout/Wishlist
 import Wishlist from "./components/layout/Wishlist";
@@ -21,11 +21,17 @@ import CartDrawer from "./components/layout/CartDrawer";
 import Checkout from "./components/layout/Checkout";
 
 // Admin Panel Imports
-import AdminLayout from "./components/admin/AdminLayout"; // Layout Component
+import AdminLayout from "./components/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AddProduct from "./pages/admin/AddProduct";
-import AllProducts from "./pages/admin/AllProducts"; // <-- AllProducts Import
+import AllProducts from "./pages/admin/AllProducts";
+import Orders from "./pages/admin/Orders";
+import Customers from "./pages/admin/Customers";
+import Payments from "./pages/admin/Payments";
+import DeliveryRiders from "./pages/admin/DeliveryRiders";
+import Reports from "./pages/admin/Reports";
+import Settings from "./pages/admin/Settings";
 
 // Delivery Panel Imports
 import DeliveryAuth from "./pages/delivery/DeliveryAuth";
@@ -104,7 +110,13 @@ export default function App() {
               <Route path="/admin" element={<AdminLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="add-product" element={<AddProduct />} />
-                <Route path="products" element={<AllProducts />} /> {/* <-- AllProducts Route */}
+                <Route path="products" element={<AllProducts />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="customers" element={<Customers />} />
+                <Route path="payments" element={<Payments />} />
+                <Route path="delivery-riders" element={<DeliveryRiders />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
 
               {/* Delivery Panel Routes */}
