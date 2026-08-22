@@ -11,7 +11,6 @@ class Cart extends Model
 
     protected $table = 'carts';
 
-    // প্রাইমারি কি নির্দিষ্ট করে দেয়া হলো
     protected $primaryKey = 'cart_id'; 
 
     protected $fillable = [

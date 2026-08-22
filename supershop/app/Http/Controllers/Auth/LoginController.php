@@ -15,7 +15,6 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        // ১. ভ্যালিডেশন
         $validator = Validator::make($request->all(), [
             'phone'    => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -28,7 +27,6 @@ class LoginController extends Controller
             ], 422);
         }
 
-        // ২. ইউজার চেক
         $user = User::where('phone', $request->phone)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -38,7 +36,6 @@ class LoginController extends Controller
             ], 401);
         }
 
-        // ৩. ডেলিভারি ম্যানের জন্য এপ্রুভাল চেক
         $userRole = strtolower(trim($user->role ?? ''));
         if ($userRole === 'delivery' && isset($user->is_approved) && !$user->is_approved) {
             return response()->json([
@@ -47,10 +44,8 @@ class LoginController extends Controller
             ], 403);
         }
 
-        // ৪. Token জেনারেট
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // ৫. JSON রেসপন্স (সকল রোলের জন্য সফল)
         return response()->json([
             'status'       => true,
             'message'      => 'Logged in successfully!',

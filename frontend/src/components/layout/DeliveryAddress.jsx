@@ -50,7 +50,6 @@ export default function DeliveryAddress({ formData, handleInputChange, onNext })
 
           <div>
             <label className="block font-medium text-gray-700 mb-1">City / District *</label>
-            {/* 🔹 value=formData.city দেওয়ার কারণে স্টেট আর ড্রপডাউন সিঙ্ক থাকবে */}
             <select
               name="city"
               value={formData.city || ""}
@@ -58,7 +57,6 @@ export default function DeliveryAddress({ formData, handleInputChange, onNext })
               required
               className="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-emerald-500 bg-white text-xs"
             >
-              {/* ডিফল্ট অপশনটি হিডেন এবং ডিজেবল্ড রাখা হয়েছে যেন ড্রপডাউন খুললে শুধু ২টা অপশনই দেখায় */}
               <option value="" disabled hidden>
                 -- Select Area --
               </option>

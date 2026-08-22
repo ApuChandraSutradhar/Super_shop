@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearch } from "../../context/SearchContext";
 import { useCart } from "../../context/CartContext";
-import { useWishlist } from "../../context/WishlistContext"; // Import Wishlist Context
+import { useWishlist } from "../../context/WishlistContext";
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
-import SidebarDrawer from "../SidebarDrawer"; // Import Sidebar Drawer
+import SidebarDrawer from "../SidebarDrawer";
 
 import {
   FiMenu,
@@ -22,14 +22,13 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { setSearchQuery } = useSearch();
   const { cartItems, setIsCartOpen } = useCart();
-  const { wishlistItems } = useWishlist(); // Access wishlist items array
+  const { wishlistItems } = useWishlist();
 
   const [term, setTerm] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Check stored user data from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
@@ -76,7 +75,6 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
         <div className="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
           
-          {/* Left Brand Section */}
           <div className="flex items-center gap-5">
             <button 
               onClick={() => setIsSidebarOpen(true)}
@@ -137,7 +135,7 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* ❤️ Wishlist Heart Button */}
+            {/* Wishlist Heart Button */}
             <button
               onClick={() => navigate("/wishlist")}
               className="relative text-2xl text-gray-700 hover:text-[#064e3b] cursor-pointer transition-colors"
@@ -156,7 +154,7 @@ export default function Navbar() {
               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
             </button>
 
-            {/* Shopping Cart Trigger */}
+            {/* Shopping Cart */}
             <button
               onClick={() => setIsCartOpen(true)}
               className="bg-[#064e3b] text-white rounded-xl px-5 py-3 flex items-center gap-2 hover:bg-emerald-900 shadow-sm font-medium cursor-pointer transition active:scale-95"

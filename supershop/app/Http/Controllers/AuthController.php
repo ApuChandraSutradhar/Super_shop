@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // 🔑 কমন লগইন (Admin, Delivery, Customer সবার জন্য)
+    // Login  (Admin, Delivery, Customer)
     public function login(Request $request)
     {
         $request->validate([
@@ -22,10 +22,8 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid credentials'], 401);
         }
 
-        // কেস-ইনসেনসিটিভ চেক (delivery/Delivery)
         $userRole = strtolower(trim($user->role ?? ''));
 
-        // ডেলিভারি ম্যানের ক্ষেত্রে এডমিন এপ্রুভ করেছে কিনা চেক
         if ($userRole === 'delivery' && isset($user->is_approved) && !$user->is_approved) {
             return response()->json([
                 'success' => false,
@@ -40,7 +38,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // 🚚 ডেলিভারি ম্যান রেজিস্ট্রেশন (Status থাকবে Pending / is_approved = 0)
+    //(Status Pending / is_approved = 0)
     public function registerDelivery(Request $request)
     {
         $request->validate([
@@ -58,7 +56,7 @@ class AuthController extends Controller
             'is_approved' => 0,
         ]);
 
-        // Mass assignment ব্লক থাকলে বাধ্যতামূলকভাবে 'delivery' সেট করা
+        // Mass assignment 'delivery' role and is_approved = 0
         if ($user->role !== 'delivery') {
             $user->role = 'delivery';
             $user->is_approved = 0;
@@ -72,7 +70,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // 👨‍💼 প্যান্ডিং ডেলিভারি ম্যানের লিস্ট
     public function getPendingDeliveries()
     {
         $pending = User::whereRaw('LOWER(role) = ?', ['delivery'])
@@ -82,7 +79,6 @@ class AuthController extends Controller
         return response()->json(['success' => true, 'deliveries' => $pending]);
     }
 
-    // 👨‍💼 এডমিন কর্তৃক এপ্রুভ করা
     public function approveDelivery($id)
     {
         $user = User::findOrFail($id);

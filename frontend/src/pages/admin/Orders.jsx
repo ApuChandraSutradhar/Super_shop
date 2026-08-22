@@ -10,7 +10,6 @@ export default function Orders() {
   const fetchOrders = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/api/admin/orders");
-      // আপনার কন্ট্রোলার থেকে 'orders' কি (key)-তে ডাটা আসে
       if (response.data && response.data.orders) {
         setOrders(response.data.orders);
       } else {

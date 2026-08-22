@@ -8,7 +8,6 @@ export const CartProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ১. LocalStorage থেকে ইউজার ID নেওয়া
   const getCurrentUserId = () => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -24,7 +23,6 @@ export const CartProvider = ({ children }) => {
 
   const currentUserId = getCurrentUserId();
 
-  // Fetch cart items for specific logged-in user
   const fetchCart = async () => {
     const userId = getCurrentUserId();
     
@@ -56,7 +54,6 @@ export const CartProvider = ({ children }) => {
     fetchCart();
   }, [currentUserId]);
 
-  // Add item to database cart (Handles both product object & ID parameter)
   const addToCart = async (productParam) => {
     const userId = getCurrentUserId();
     
@@ -65,7 +62,6 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
-    // ১. নিশ্চিত করা ডাটা থেকে সঠিক ID নেওয়া হচ্ছে
     const productId = typeof productParam === "object" 
       ? (productParam?.id || productParam?._id) 
       : productParam;
@@ -82,7 +78,7 @@ export const CartProvider = ({ children }) => {
         quantity: 1,
       });
 
-      await fetchCart(); // Sync with Database
+      await fetchCart();
       setIsCartOpen(true);
     } catch (error) {
       console.error("Error adding product to cart:", error);
@@ -138,7 +134,6 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // 🔴 Cart ক্লিয়ার করার ফাংশন (রিলোড ছাড়াই React State ও LocalStorage খালি করবে)
   const clearCart = () => {
     setCartItems([]);
     localStorage.removeItem("cartItems");
@@ -173,7 +168,7 @@ export const CartProvider = ({ children }) => {
         addToCart,
         updateQuantity,
         removeItem,
-        clearCart, // 🔴 Provider-এ clearCart যুক্ত করা হলো
+        clearCart,
         subtotal,
         totalItemCount,
         loading,

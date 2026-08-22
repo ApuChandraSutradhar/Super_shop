@@ -16,7 +16,7 @@ export default function DeliveryAuth() {
 
     if (isRegister) {
       try {
-        // Registration request-a explicitly role: "delivery" pathano hochhe
+        // Registration request-a explicitly role: "delivery"
         const res = await axios.post("http://127.0.0.1:8000/api/delivery/register", {
           ...formData,
           role: "delivery",
@@ -35,7 +35,6 @@ export default function DeliveryAuth() {
           password: formData.password,
         });
 
-        // Flexible user and role response check
         const user = res.data?.user || res.data?.data?.user;
         const rawRole = user?.role || "";
         const userRole = String(rawRole).toLowerCase().trim();

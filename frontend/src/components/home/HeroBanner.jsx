@@ -11,7 +11,6 @@ export default function HeroBanner() {
         backgroundImage: `url(${heroBg})`,
       }}
     >
-      {/* Dark Overlay */}
       <div className="absolute inset-0 bg-green-900/80"></div>
 
       {/* Content */}
@@ -94,8 +93,6 @@ export default function HeroBanner() {
 
           </div>
 
-          {/* Product Image */}
-
 <div className="w-[360px] h-[360px] rounded-full bg-white shadow-2xl overflow-hidden flex items-center justify-center">
 
   <img
@@ -105,8 +102,6 @@ export default function HeroBanner() {
   />
 
 </div>
-
-          {/* Floating Card */}
 
           <div className="absolute bottom-2 left-8 bg-white rounded-2xl shadow-xl px-5 py-3 flex items-center gap-4 z-30">
 
@@ -127,8 +122,6 @@ export default function HeroBanner() {
             </div>
 
           </div>
-
-          {/* Free Delivery */}
 
           <div className="absolute bottom-4 right-4 bg-green-600 text-white rounded-full px-6 py-4 flex items-center gap-2 shadow-xlz-30">
 

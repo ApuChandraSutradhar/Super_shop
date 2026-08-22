@@ -72,7 +72,7 @@ export default function Dashboard() {
     { name: "Catla Fish Whole", weight: "1 kg", stockLeft: "18 left" },
   ]);
 
-  // ব্যাকএন্ড API কানেক্ট করার useEffect
+  // Backend API Cconnected useEffect
   useEffect(() => {
     // const fetchDashboardData = async () => {
     //   try {
@@ -233,7 +233,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 📋 Tables Row: Recent Orders & Low Stock Alert */}
+      {/* Tables Row: Recent Orders & Low Stock Alert */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Orders */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">

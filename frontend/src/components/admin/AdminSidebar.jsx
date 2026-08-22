@@ -72,7 +72,6 @@ export default function AdminSidebar() {
         </nav>
       </div>
 
-      {/* Footer Navigation (Back to Shop & Logout) */}
       <div className="pt-4 border-t border-emerald-700/60 flex flex-col gap-2">
         <Link
           to="/"

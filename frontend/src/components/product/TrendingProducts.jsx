@@ -1,17 +1,15 @@
 import React from "react";
 import ProductCard from "./ProductCard";
-import trendingProducts from "../../data/trendingProducts"; // ডাটা ফাইলের পাথ
-import { useSearch } from "../../context/SearchContext"; // Context Import
+import trendingProducts from "../../data/trendingProducts";
+import { useSearch } from "../../context/SearchContext";
 
 export default function TrendingProducts() {
-  const { searchQuery } = useSearch(); // গ্লোবাল সার্চ ভ্যালু পাওয়া যাবে
+  const { searchQuery } = useSearch();
 
-  // সার্চ কিউয়েরি অনুযায়ী ট্রেন্ডিং প্রোডাক্ট ফিল্টার
   const filteredProducts = trendingProducts.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // যদি সার্চ করার পর কোনো ট্রেন্ডিং প্রোডাক্ট না মেলে, তবে পুরো সেকশনটি দেখাবে না
   if (searchQuery && filteredProducts.length === 0) {
     return null;
   }

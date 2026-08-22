@@ -11,12 +11,11 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id('payment_id'); // Primary Key
             
-            // orders টেবিলের সাথে Foreign Key
             $table->foreignId('order_id')->constrained('orders', 'order_id')->onDelete('cascade');
             
             $table->enum('payment_method', ['COD', 'bKash', 'Nagad', 'Card']);
             $table->enum('payment_status', ['pending', 'paid', 'failed'])->default('pending');
-            $table->string('transaction_id')->nullable(); // bKash/Nagad এর TrxID এর জন্য
+            $table->string('transaction_id')->nullable();
             $table->decimal('amount', 10, 2);
             
             $table->timestamps();

@@ -10,10 +10,8 @@ export default function ProductGrid() {
   const { addToCart } = useCart();
   const [allProducts, setAllProducts] = useState(staticProducts);
 
-  // Reference for scrolling to section
   const sectionRef = useRef(null);
 
-  // Fetch products from database API
   const fetchDatabaseProducts = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/api/products");
@@ -35,7 +33,6 @@ export default function ProductGrid() {
     fetchDatabaseProducts();
   }, []);
 
-  // Smooth scroll trigger when category changes
   useEffect(() => {
     if (selectedCategory) {
       sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -49,7 +46,6 @@ export default function ProductGrid() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Filter products based on search query and selected category
   const filteredProducts = allProducts.filter((product) => {
     const matchesCategory =
       !selectedCategory ||

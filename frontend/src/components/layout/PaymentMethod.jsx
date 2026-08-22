@@ -18,7 +18,7 @@ export default function PaymentMethod({
 
   // bKash Modal States
   const [bkashNumber, setBkashNumber] = useState("");
-  const [bkashStep, setBkashStep] = useState(1); // 1: Number, 2: OTP, 3: PIN
+  const [bkashStep, setBkashStep] = useState(1);
   const [otp, setOtp] = useState("");
   const [pin, setPin] = useState("");
 

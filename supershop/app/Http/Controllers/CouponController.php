@@ -13,7 +13,6 @@ class CouponController extends Controller
 
         $query = Coupon::query();
 
-        // user_id থাকলে ফিল্টার করবে, না থাকলে সব কুপন দেখাবে
         if ($userId) {
             $query->where('user_id', $userId);
         }

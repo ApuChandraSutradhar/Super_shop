@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useWishlist } from "../../context/WishlistContext"; // আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী পাথ ঠিক রাখুন
+import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { FiTrash2, FiShoppingCart } from "react-icons/fi";
 
@@ -9,11 +9,9 @@ export default function Wishlist() {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
-  // সেফটি সহ কার্টে এড করার হ্যান্ডলার
   const handleAddToCart = (product) => {
     if (!product) return;
     
-    // ব্যাকএন্ডের জন্য সঠিক আইডি বের করা (id, product_id বা _id)
     const targetId = product.id || product.product_id || product._id;
     
     if (!targetId) {
@@ -21,7 +19,6 @@ export default function Wishlist() {
       return;
     }
 
-    // ব্যাকএন্ডে শুধু ID পাঠানো নিশ্চিত করা
     addToCart(targetId);
   };
 
@@ -52,7 +49,6 @@ export default function Wishlist() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {wishlistItems.map((item, index) => {
-              // Item যদি অবজেক্ট না হয়ে আইডি আকারে থাকে বা nested product থাকে
               const product = item?.product || item;
               const productId = product?.id || product?.product_id || product?._id || index;
 

@@ -13,7 +13,6 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState(user);
   const [message, setMessage] = useState("");
 
-  // LocalStorage থেকে ইউজারের ডাটা লোড করা
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
@@ -44,7 +43,6 @@ export default function ProfilePage() {
     e.preventDefault();
     setUser(formData);
     
-    // LocalStorage-এ আপডেট হওয়া ডাটা সেভ করা
     const existingData = JSON.parse(localStorage.getItem("user")) || {};
     const updatedUser = { ...existingData, ...formData };
     localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -93,7 +91,7 @@ export default function ProfilePage() {
         {/* Profile Info / Edit Form */}
         <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
           {isEditing ? (
-            /* --- Edit Mode --- */
+
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold uppercase text-gray-500 mb-2">

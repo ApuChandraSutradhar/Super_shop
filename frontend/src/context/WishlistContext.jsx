@@ -13,12 +13,10 @@ export const WishlistProvider = ({ children }) => {
     }
   });
 
-  // Save wishlist items to localStorage on state change
   useEffect(() => {
     localStorage.setItem("wishlist", JSON.stringify(wishlistItems));
   }, [wishlistItems]);
 
-  // Toggle adding and removing products from wishlist
   const toggleWishlist = (product) => {
     setWishlistItems((prevItems) => {
       const exists = prevItems.some((item) => item.id === product.id);
@@ -30,7 +28,6 @@ export const WishlistProvider = ({ children }) => {
     });
   };
 
-  // Check if a product is inside the wishlist
   const isInWishlist = (productId) => {
     return wishlistItems.some((item) => item.id === productId);
   };

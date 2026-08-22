@@ -8,7 +8,6 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch customers from API
   const fetchCustomers = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/api/admin/customers");

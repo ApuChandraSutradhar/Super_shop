@@ -11,7 +11,6 @@ class CustomerController extends Controller
     public function index()
     {
         try {
-            // 'users' টেবিল থেকে কাস্টমার লিস্ট, টোটাল অর্ডার এবং মোট খরচ রিটার্ন করা হচ্ছে
             $customers = User::select('id', 'name', 'email', 'phone', 'created_at')
                 ->get()
                 ->map(function ($user) {
@@ -46,7 +45,7 @@ class CustomerController extends Controller
     public function updateStatus(Request $request, $id)
     {
         try {
-            // প্রয়োজন হলে স্ট্যাটাস আপডেট লজিক
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Status updated successfully'

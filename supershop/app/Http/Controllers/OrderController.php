@@ -23,7 +23,6 @@ class OrderController extends Controller
         };
     }
 
-    // 🛍️ ১. অর্ডার সেভ করার API (Payment & Coupon ডাটা সহ)
     public function placeOrder(Request $request)
     {
         $request->validate([
@@ -75,7 +74,6 @@ class OrderController extends Controller
                 }
             }
 
-            // A. orders টেবিলে এনট্রি
             $order = Order::create([
                 'order_number'    => 'FM-' . rand(100000, 999999),
                 'customer_id'     => $request->customer_id,
@@ -86,7 +84,6 @@ class OrderController extends Controller
                 'order_status'    => 'pending',
             ]);
 
-            // B. order_items টেবিলে একাধিক প্রোডাক্ট সেভ
             foreach ($request->items as $item) {
                 OrderItem::create([
                     'order_id'   => $order->order_id,
@@ -97,7 +94,6 @@ class OrderController extends Controller
                 ]);
             }
 
-            // C. payments টেবিলে পেমেন্ট ডাটা সেভ
             Payment::create([
                 'order_id'       => $order->order_id,
                 'payment_method' => $paymentMethod,
@@ -106,7 +102,6 @@ class OrderController extends Controller
                 'amount'         => (float) $request->payable_amount,
             ]);
 
-            // 🛒 E. ডাটাবেজ থেকে কাস্টমারের Cart ডিলিট করা
             $cart = DB::table('carts')->where('user_id', $request->customer_id)->first();
             if ($cart) {
                 DB::table('cart_items')->where('cart_id', $cart->cart_id)->delete();
@@ -131,7 +126,6 @@ class OrderController extends Controller
         }
     }
 
-    // 🎟️ ২. কাস্টমারের কুপন লিস্ট দেখার API
     public function getUserCoupons($userId)
     {
         try {
@@ -152,7 +146,6 @@ class OrderController extends Controller
         }
     }
 
-    // 👨‍💼 ৩. এডমিন প্যানেলে সব অর্ডার লিস্ট দেখানোর API
     public function getAllOrdersForAdmin()
     {
         $orders = Order::with(['customer', 'orderItems.product', 'payment'])
@@ -165,7 +158,6 @@ class OrderController extends Controller
         ]);
     }
 
-    // 👨‍💼 ৪. অর্ডার স্ট্যাটাস ও পেমেন্ট আপডেট করার API
     public function updateOrderStatus(Request $request, $orderId)
     {
         $order = Order::findOrFail($orderId);

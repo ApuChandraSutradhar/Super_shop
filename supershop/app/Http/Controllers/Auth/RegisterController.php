@@ -15,7 +15,6 @@ class RegisterController extends Controller
      */
     public function register(Request $request)
     {
-        // ১. ডাটা ভ্যালিডেশন
         $validator = Validator::make($request->all(), [
             'name'     => ['required', 'string', 'max:255'],
             'phone'    => ['required', 'string', 'max:20', 'unique:users,phone'],
@@ -30,7 +29,6 @@ class RegisterController extends Controller
             ], 422);
         }
 
-        // ২. ডাটাবেজে ইউজার ক্রিয়েট
         $user = User::create([
             'name'     => $request->name,
             'phone'    => $request->phone,
@@ -39,10 +37,8 @@ class RegisterController extends Controller
             'role'     => 'customer',
         ]);
 
-        // ৩. Sanctum Token জেনারেট
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // ৪. React-এ JSON রেসপন্স পাঠানো
         return response()->json([
             'status'       => true,
             'message'      => 'Customer registered successfully!',

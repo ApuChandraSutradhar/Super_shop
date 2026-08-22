@@ -10,7 +10,6 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try {
-            // ১. ভ্যালিডেশন
             $request->validate([
                 'name'     => 'required|string',
                 'category' => 'required|string',
@@ -21,22 +20,18 @@ class ProductController extends Controller
 
             $imageUrl = '';
 
-            // ২. ল্যাপটপ থেকে ইমেজ ফাইল আপলোড হ্যান্ডলিং
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
                 
-                // public/uploads/products ফোল্ডারে সেভ হবে
+                // public/uploads/products
                 $image->move(public_path('uploads/products'), $imageName);
                 
-                // ছবির সম্পূর্ণ URL তৈরি
                 $imageUrl = asset('uploads/products/' . $imageName);
             } elseif ($request->image_url) {
-                // যদি কেউ URL দেয়
                 $imageUrl = $request->image_url;
             }
 
-            // ৩. প্রডাক্ট তৈরি
             $product = Product::create([
                 'name'        => $request->name,
                 'category'    => $request->category,
@@ -71,7 +66,6 @@ class ProductController extends Controller
         return response()->json($query->get(), 200);
     }
 
-    // স্টক ১ কমানোর মেথড
     public function decrementStock($id)
     {
         $product = Product::find($id);
@@ -92,7 +86,6 @@ class ProductController extends Controller
         return response()->json(['message' => 'Out of stock'], 400);
     }
 
-    // 🔴 প্রডাক্ট আপডেট (Edit/Update) করার মেথড
     public function update(Request $request, $id)
     {
         try {
@@ -102,7 +95,6 @@ class ProductController extends Controller
                 return response()->json(['message' => 'Product not found'], 404);
             }
 
-            // ভ্যালিডেশন
             $request->validate([
                 'name'     => 'required|string',
                 'category' => 'required|string',
@@ -111,7 +103,6 @@ class ProductController extends Controller
                 'image'    => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             ]);
 
-            // নতুন ছবি সিলেক্ট করলে আপলোড হ্যান্ডলিং
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
@@ -121,7 +112,6 @@ class ProductController extends Controller
                 $product->image = $request->image_url;
             }
 
-            // তথ্য আপডেট
             $product->name        = $request->name;
             $product->category    = $request->category;
             $product->price       = $request->price;
@@ -144,7 +134,7 @@ class ProductController extends Controller
         }
     }
 
-    // 🔴 প্রডাক্ট মুছে ফেলার (Delete) মেথড
+    //Prodect (Delete)
     public function destroy($id)
     {
         try {

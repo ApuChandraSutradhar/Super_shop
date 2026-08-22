@@ -9,10 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->id('order_id'); // Primary Key (order_id)
-            $table->string('order_number')->unique(); // যেমন: FM-666815
+            $table->id('order_id');
+            $table->string('order_number')->unique(); // 
             
-            // users টেবিলের সাথে ফরেন কি সম্পর্ক
             $table->foreignId('customer_id')->constrained('users', 'id')->onDelete('cascade');
             
             $table->decimal('total_amount', 10, 2);
@@ -21,11 +20,10 @@ return new class extends Migration
             
             $table->enum('order_status', ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
             
-            // ERD অনুযায়ী ঐচ্ছিক ফিল্ডসমূহ
             $table->unsignedBigInteger('coupon_id')->nullable();
             $table->unsignedBigInteger('delivery_person_id')->nullable();
             
-            $table->timestamps(); // created_at (order_date হিসেবে কাজ করবে) ও updated_at
+            $table->timestamps();
         });
     }
 

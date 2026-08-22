@@ -57,7 +57,6 @@ export default function SidebarDrawer({ isOpen, onClose }) {
         <div className="w-80 bg-white shadow-2xl flex flex-col justify-between transition-all transform duration-300">
           
           <div>
-            {/* Navbar-এর ব্যাকগ্রাউন্ড কালারের সাথে সামঞ্জস্য রেখে #004225 কালার কোড ব্যবহার করা হয়েছে */}
             <div className="bg-[#004225] text-white p-6 relative rounded-b-3xl shadow-md">
             
               <button

@@ -4,7 +4,6 @@ import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { FiTrash2, FiShoppingCart } from "react-icons/fi";
 
-// Ensure 'export default' is present here
 export default function Wishlist() {
   const { wishlistItems, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();

@@ -7,7 +7,6 @@ export default function OrdersPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // LocalStorage থেকে ইউজারের অর্ডার ডাটা লোড করা
     const savedOrders = localStorage.getItem("user_orders");
     if (savedOrders) {
       try {
@@ -18,7 +17,6 @@ export default function OrdersPage() {
     }
   }, []);
 
-  // স্ট্যাটাস অনুযায়ী ব্যাজের কালার ও আইকন
   const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
       case "delivered":

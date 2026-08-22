@@ -61,7 +61,7 @@ export default function AllProducts() {
     setUpdating(true);
 
     const formData = new FormData();
-    formData.append("_method", "PUT"); // Laravel Method Spoofing
+    formData.append("_method", "PUT");
     formData.append("name", editProduct.name);
     formData.append("category", editProduct.category);
     formData.append("price", editProduct.price);
@@ -69,7 +69,7 @@ export default function AllProducts() {
     formData.append("stock", editProduct.stock);
     formData.append("description", editProduct.description || "");
 
-    // নতুন ছবি সিলেক্ট করলে সেটি যুক্ত হবে
+
     if (editImageFile) {
       formData.append("image", editImageFile);
     }
@@ -83,7 +83,7 @@ export default function AllProducts() {
 
       alert("Product updated successfully!");
       setIsEditOpen(false);
-      fetchProducts(); // Refresh product list
+      fetchProducts();
     } catch (error) {
       console.error("Error updating product:", error);
       alert("Failed to update product.");
@@ -92,7 +92,7 @@ export default function AllProducts() {
     }
   };
 
-  // Filter Products by Search & Category
+  //Search & Category
   const filteredProducts = products.filter((item) => {
     const matchesSearch = item.name
       .toLowerCase()
@@ -133,13 +133,16 @@ export default function AllProducts() {
             <option value="All Categories">All Categories</option>
             <option value="Fresh Fruits">Fresh Fruits</option>
             <option value="Fresh Vegetables">Fresh Vegetables</option>
-            <option value="Drinks">Drinks</option>
-            <option value="Meat">Meat</option>
             <option value="Fish">Fish</option>
+            <option value="Meat">Meat</option>
             <option value="Grocery">Grocery</option>
+            <option value="Bakery">Bakery</option>
+            <option value="Drinks">Drinks</option>
+            <option value="Beauty">Beauty</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Baby Care">Baby Care</option>
           </select>
 
-          {/* Add Product Link Button */}
           <Link
             to="/admin/add-product"
             className="inline-flex items-center gap-2 bg-[#005a36] hover:bg-[#004227] text-white text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm"
@@ -264,7 +267,7 @@ export default function AllProducts() {
         </div>
       )}
 
-      {/* ✏️ EDIT PRODUCT MODAL */}
+      {/* EDIT PRODUCT MODAL */}
       {isEditOpen && editProduct && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto">
@@ -312,10 +315,14 @@ export default function AllProducts() {
                   >
                     <option value="Fresh Fruits">Fresh Fruits</option>
                     <option value="Fresh Vegetables">Fresh Vegetables</option>
-                    <option value="Drinks">Drinks</option>
-                    <option value="Meat">Meat</option>
                     <option value="Fish">Fish</option>
+                    <option value="Meat">Meat</option>
                     <option value="Grocery">Grocery</option>
+                    <option value="Bakery">Bakery</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Beauty">Beauty</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Baby Care">Baby Care</option>
                   </select>
                 </div>
 

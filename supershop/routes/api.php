@@ -11,7 +11,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DeliveryRiderController;
-use App\Http\Controllers\PaymentController; // PaymentController ইমপোর্ট করা হলো
+use App\Http\Controllers\PaymentController; 
+use App\Http\Controllers\ReportController;
 
 // Coupon Routes
 Route::get('/coupons', [CouponController::class, 'getUserCoupons']);
@@ -26,8 +27,11 @@ Route::post('/admin/approve-delivery/{id}', [AuthController::class, 'approveDeli
 Route::get('/delivery-riders', [DeliveryRiderController::class, 'index']);
 Route::patch('/delivery-riders/{id}/status', [DeliveryRiderController::class, 'updateStatus']);
 
-// Admin Payments Route (নতুন যোগ করা হয়েছে)
+// Admin Payments Route
 Route::get('/payments', [PaymentController::class, 'index']);
+
+// Admin Reports Route
+Route::get('/admin/reports', [ReportController::class, 'getReports']);
 
 // Customer Place Order & Coupons
 Route::post('/place-order', [OrderController::class, 'placeOrder']);

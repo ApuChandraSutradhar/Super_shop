@@ -43,7 +43,7 @@ class CartController extends Controller
             ]);
         }
 
-        // Fetch updated cart with items and products (id বাদ দিয়ে কেবল cart_id দিয়ে খোঁজা)
+        // Fetch updated cart with items and products
         $updatedCart = Cart::where('cart_id', $cartId)
             ->with('items.product')
             ->first();

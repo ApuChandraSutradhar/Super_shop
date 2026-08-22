@@ -11,7 +11,6 @@ class DeliveryRiderController extends Controller
     // Fetch all delivery riders
     public function index()
     {
-        // DB-এর users টেবিল থেকে role = 'delivery' ফিল্টার করা হয়েছে
         $riders = User::where('role', 'delivery')->get();
 
         return response()->json([

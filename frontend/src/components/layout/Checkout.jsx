@@ -60,7 +60,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [trxId, setTrxId] = useState("");
   const [orderId, setOrderId] = useState("");
-  const [finalGrandTotal, setFinalGrandTotal] = useState(0); // 🟢 অর্ডার কনফার্মেশনের জন্য ফিক্সড টোটাল স্টেট
+  const [finalGrandTotal, setFinalGrandTotal] = useState(0);
 
   const deliveryFee = formData.city === "Dhaka" ? 60 : formData.city === "Outside Dhaka" ? 120 : 0;
   
@@ -84,7 +84,6 @@ export default function Checkout() {
     setAppliedCoupon(false);
   };
 
-  // ✅ Helper Function: LocalStorage ও React Context
   const forceClearCart = () => {
     localStorage.removeItem("cartItems");
     localStorage.removeItem("cart");
@@ -93,7 +92,6 @@ export default function Checkout() {
     }
   };
 
-  // ✅ Laravel API integration with LocalStorage fallback/sync
   const handleConfirmOrder = async (forcedTrxId = trxId) => {
     if (cartItems.length === 0) {
       alert("Your cart is empty!");
@@ -127,7 +125,7 @@ export default function Checkout() {
       payable_amount: currentGrandTotal,
       payment_method: normalizedPaymentMethod,
       transaction_id: finalTransactionId,
-      coupon_code: appliedCoupon ? couponCode : "AUTO2000_OFFER", // 👈 কুপন সিলেক্ট না থাকলে ডিফল্ট স্ট্রিং পাঠানো হলো
+      coupon_code: appliedCoupon ? couponCode : "AUTO2000_OFFER",
       is_used: appliedCoupon ? 1 : 0,
       items: cartItems.map((item) => {
         const product = item?.product || item;
@@ -144,7 +142,6 @@ export default function Checkout() {
     };
 
     try {
-      //Laravel Backend এ API Request
       const response = await axios.post("http://127.0.0.1:8000/api/place-order", orderPayload);
 
       let generatedOrderId = "";
@@ -280,7 +277,6 @@ export default function Checkout() {
               )}
             </div>
 
-            {/* Right Column: Compact Order Summary */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 sticky top-4">
               <h3 className="text-base font-bold text-gray-800 mb-2 border-b pb-2">Order Summary</h3>
 

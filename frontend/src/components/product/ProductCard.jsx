@@ -15,7 +15,6 @@ export default function ProductCard({ product, onAddToCart }) {
   const discountPercent = Number(product?.discount || 0);
   const stockQty = Number(product?.stock || 0);
 
-  // অটোমেটিক ডিসকাউন্ট প্রাইস হিসাব
   const finalPrice =
     discountPercent > 0
       ? Math.round(originalPrice - (originalPrice * discountPercent) / 100)
@@ -23,11 +22,9 @@ export default function ProductCard({ product, onAddToCart }) {
 
   const isAvailable = stockQty > 0;
 
-  // উইশলিস্ট আইটেম চেক করার জন্য আইডি
   const productId = product?.id || product?._id;
   const isFavorite = isInWishlist(productId);
 
-  // কার্ট বাটনে ক্লিক হ্যান্ডেল করা
   const handleCartClick = () => {
     if (onAddToCart) {
       onAddToCart(product?.id);

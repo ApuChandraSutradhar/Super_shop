@@ -6,9 +6,7 @@ export default function Coupons() {
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState(null);
 
-  // Local Storage থেকে Logged-in User ডাটা নেয়া
   const user = JSON.parse(localStorage.getItem("user"));
-  // id অথবা user_id চেক করে নেয়া
   const currentUserId = user?.id || user?.user_id || 1;
 
   useEffect(() => {

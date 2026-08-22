@@ -4,7 +4,7 @@ import HeroBanner from "../../components/home/HeroBanner";
 import FeatureCards from "../../components/home/FeatureCards";
 import ProductGrid from "../../components/product/ProductGrid";
 import TrendingProducts from "../../components/product/TrendingProducts";
-import CartDrawer from "../../components/layout/CartDrawer"; // CartDrawer Import করা হলো
+import CartDrawer from "../../components/layout/CartDrawer";
 
 export default function Home({ searchQuery }) {
   return (
@@ -30,8 +30,6 @@ export default function Home({ searchQuery }) {
           <TrendingProducts />
         </div>
       </div>
-
-      {/* কাস্টমার '+' ক্লিক করলে কার্ট স্লাইডবার শো করার জন্য */}
       <CartDrawer />
     </div>
   );

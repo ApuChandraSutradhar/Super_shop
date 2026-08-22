@@ -12,12 +12,12 @@ import {
   FaBaby,
 } from "react-icons/fa";
 import { FiMenu, FiChevronRight } from "react-icons/fi";
-import { useSearch } from "../../context/SearchContext"; // আপনার SearchContext এর পাথ
+import { useSearch } from "../../context/SearchContext";
 
 const categories = [
   { name: "All Categories", value: "All", icon: <FaShoppingBasket /> },
   { name: "Fresh Fruits", value: "Fresh Fruits", icon: <FaAppleAlt /> },
-  { name: "Fresh Vegetables", value: "Vegetables", icon: <FaCarrot /> }, // ডাটাবেজে "Vegetables" আছে
+  { name: "Fresh Vegetables", value: "Vegetables", icon: <FaCarrot /> },
   { name: "Fish", value: "Fish", icon: <FaFish /> },
   { name: "Meat", value: "Meat", icon: <FaDrumstickBite /> },
   { name: "Grocery", value: "Grocery", icon: <FaShoppingBasket /> },

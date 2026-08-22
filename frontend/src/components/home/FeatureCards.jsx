@@ -39,7 +39,6 @@ const features = [
 
 export default function FeatureCards() {
   return (
-    /* Adjusted top margin to lift section slightly higher while keeping responsive layout */
     <section className="mb-4 lg:ml-[320px] -mt-24 lg:-mt-52 relative z-10 pr-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {features.map((item) => (

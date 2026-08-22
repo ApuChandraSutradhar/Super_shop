@@ -5,7 +5,6 @@ export default function AdminHeader({ title = "Dashboard Overview" }) {
   const [adminName, setAdminName] = useState("Admin");
 
   useEffect(() => {
-    // LocalStorage থেকে অ্যাডমিনের নাম রিড করা
     const savedUser = localStorage.getItem("adminUser");
     if (savedUser) {
       try {
