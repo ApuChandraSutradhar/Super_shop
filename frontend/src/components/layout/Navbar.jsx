@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearch } from "../../context/SearchContext";
 import { useCart } from "../../context/CartContext";
@@ -16,6 +16,9 @@ import {
   FiMapPin,
   FiSearch,
   FiLogOut,
+  FiShield,
+  FiTruck,
+  FiChevronDown,
 } from "react-icons/fi";
 
 export default function Navbar() {
@@ -27,7 +30,10 @@ export default function Navbar() {
   const [term, setTerm] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
+
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -38,6 +44,18 @@ export default function Navbar() {
         console.error("Error parsing user data", e);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsLoginDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -168,7 +186,7 @@ export default function Navbar() {
               )}
             </button>
 
-            {/* User Profile Login State */}
+            {/* User Profile Login State with Popup Dropdown */}
             {user ? (
               <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">
                 <div className="flex items-center gap-2 text-[#064e3b] font-semibold">
@@ -184,12 +202,71 @@ export default function Navbar() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => setIsAuthOpen(true)}
-                className="border border-gray-200 rounded-xl px-5 py-3 flex items-center gap-2 text-gray-700 hover:bg-gray-50 font-medium cursor-pointer"
-              >
-                <FiUser /> Login
-              </button>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsLoginDropdownOpen(!isLoginDropdownOpen)}
+                  className="border border-gray-200 rounded-xl px-5 py-3 flex items-center gap-2 text-gray-700 hover:bg-gray-50 font-medium cursor-pointer transition-all"
+                >
+                  <FiUser /> Login <FiChevronDown className={`transition-transform duration-200 ${isLoginDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Small Dropdown Popup under Login button */}
+                {isLoginDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Portal</p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setIsLoginDropdownOpen(false);
+                        setIsAuthOpen(true);
+                      }}
+                      className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-emerald-50 text-gray-700 hover:text-[#064e3b] transition-colors cursor-pointer"
+                    >
+                      <div className="p-2 bg-emerald-100 text-[#064e3b] rounded-lg">
+                        <FiUser size={16} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Customer Login</p>
+                        <p className="text-[10px] text-gray-400">Shop & Order</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsLoginDropdownOpen(false);
+                        navigate("/admin");
+                      }}
+                      className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 transition-colors cursor-pointer"
+                    >
+                      <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                        <FiShield size={16} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Admin Portal</p>
+                        <p className="text-[10px] text-gray-400">Manage Store</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsLoginDropdownOpen(false);
+                        navigate("/delivery");
+                      }}
+                      className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-amber-50 text-gray-700 hover:text-amber-600 transition-colors cursor-pointer"
+                    >
+                      <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                        <FiTruck size={16} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">Delivery Login</p>
+                        <p className="text-[10px] text-gray-400">Rider Panel</p>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 

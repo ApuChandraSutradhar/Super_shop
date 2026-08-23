@@ -33,6 +33,9 @@ import DeliveryRiders from "./pages/admin/DeliveryRiders";
 import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
 
+// Protected Route Import
+import AdminProtectedRoute from "./routes/AdminProtectedRoute";
+
 // Delivery Panel Imports
 import DeliveryAuth from "./pages/delivery/DeliveryAuth";
 import DeliveryDashboard from "./pages/delivery/DeliveryDashboard";
@@ -106,17 +109,19 @@ export default function App() {
               {/* Admin Panel Login (Without Layout) */}
               <Route path="/admin" element={<AdminLogin />} />
 
-              {/* Admin Panel Routes (With Layout: Sidebar & Top Header) */}
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="add-product" element={<AddProduct />} />
-                <Route path="products" element={<AllProducts />} />
-                <Route path="orders" element={<Orders />} />
-                <Route path="customers" element={<Customers />} />
-                <Route path="payments" element={<Payments />} />
-                <Route path="delivery-riders" element={<DeliveryRiders />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="settings" element={<Settings />} />
+              {/* Protected Admin Panel Routes */}
+              <Route element={<AdminProtectedRoute />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="add-product" element={<AddProduct />} />
+                  <Route path="products" element={<AllProducts />} />
+                  <Route path="orders" element={<Orders />} />
+                  <Route path="customers" element={<Customers />} />
+                  <Route path="payments" element={<Payments />} />
+                  <Route path="delivery-riders" element={<DeliveryRiders />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
               </Route>
 
               {/* Delivery Panel Routes */}

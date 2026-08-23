@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   FiGrid, 
@@ -25,7 +25,10 @@ export default function AdminSidebar() {
   const handleLogout = () => {
     localStorage.removeItem("adminUser");
     localStorage.removeItem("token");
-    navigate("/admin");
+    localStorage.removeItem("role");
+    
+    // Hard replacement of current window history
+    window.location.replace("/admin");
   };
 
   const menuItems = [
