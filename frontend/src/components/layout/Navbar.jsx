@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSearch } from "../../context/SearchContext";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { useToast } from "../../context/ToastContext";
 import AuthModal from "./AuthModal";
 import CartDrawer from "./CartDrawer";
 import SidebarDrawer from "../SidebarDrawer";
@@ -26,6 +27,7 @@ export default function Navbar() {
   const { setSearchQuery } = useSearch();
   const { cartItems, setIsCartOpen } = useCart();
   const { wishlistItems } = useWishlist();
+  const { setLoginAction } = useToast();
 
   const [term, setTerm] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -57,6 +59,14 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    setLoginAction(() => {
+      setIsLoginDropdownOpen(false);
+      setIsAuthOpen(true);
+    });
+    return () => setLoginAction(null);
+  }, [setLoginAction]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -272,7 +282,12 @@ export default function Navbar() {
 
         </div>
 
-        {isAuthOpen && <AuthModal closeModal={() => setIsAuthOpen(false)} />}
+        {isAuthOpen && (
+          <AuthModal
+            closeModal={() => setIsAuthOpen(false)}
+            onAuthenticated={(authenticatedUser) => setUser(authenticatedUser)}
+          />
+        )}
       </nav>
 
       {/* Cart Drawer & Sidebar Drawer */}

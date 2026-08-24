@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { SearchProvider } from "./context/SearchContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
+import { ToastProvider } from "./context/ToastContext";
 
 // Layout & Customer Pages Imports
 import CustomerLayout from "./layouts/CustomerLayout";
@@ -42,9 +43,10 @@ import DeliveryDashboard from "./pages/delivery/DeliveryDashboard";
 
 export default function App() {
   return (
-    <SearchProvider>
-      <CartProvider>
-        <WishlistProvider>
+    <ToastProvider>
+      <SearchProvider>
+        <CartProvider>
+          <WishlistProvider>
           <Router>
             {/* Global Cart Drawer */}
             <CartDrawer />
@@ -139,8 +141,9 @@ export default function App() {
               />
             </Routes>
           </Router>
-        </WishlistProvider>
-      </CartProvider>
-    </SearchProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </SearchProvider>
+    </ToastProvider>
   );
 }

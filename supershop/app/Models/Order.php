@@ -9,6 +9,10 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'order_items_summary' => 'array',
+    ];
+
     protected $primaryKey = 'order_id';
 
     protected $fillable = [
@@ -19,7 +23,13 @@ class Order extends Model
         'payable_amount',
         'order_status',
         'coupon_id',
-        'delivery_person_id'
+        'delivery_person_id',
+        'shipping_address',
+        'delivery_name',
+        'delivery_phone',
+        'delivery_city',
+        'order_notes',
+        'order_items_summary',
     ];
 
     // Customer Relationship
@@ -38,5 +48,10 @@ class Order extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class, 'order_id', 'order_id');
+    }
+
+    public function deliveryPerson()
+    {
+        return $this->belongsTo(User::class, 'delivery_person_id', 'id');
     }
 }

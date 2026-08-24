@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useToast } from "./ToastContext";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+  const { showLoginRequired } = useToast();
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,7 +60,7 @@ export const CartProvider = ({ children }) => {
     const userId = getCurrentUserId();
     
     if (!userId) {
-      alert("Please log in to add items to your cart!");
+      showLoginRequired();
       return;
     }
 

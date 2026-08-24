@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
@@ -30,6 +31,11 @@ class OrderController extends Controller
             'total_amount'   => 'required|numeric',
             'payable_amount' => 'required|numeric',
             'payment_method' => 'required|string',
+            'delivery_name' => 'required|string|max:255',
+            'delivery_phone' => 'required|string|max:30',
+            'delivery_city' => 'required|string|max:255',
+            'shipping_address' => 'required|string',
+            'order_notes' => 'nullable|string',
             'items'          => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -82,6 +88,17 @@ class OrderController extends Controller
                 'payable_amount'  => $request->payable_amount,
                 'coupon_id'       => $couponId,
                 'order_status'    => 'pending',
+                'delivery_name'   => $request->delivery_name,
+                'delivery_phone'  => $request->delivery_phone,
+                'delivery_city'   => $request->delivery_city,
+                'shipping_address'=> $request->shipping_address,
+                'order_notes'     => $request->order_notes,
+                'order_items_summary' => collect($request->items)->map(fn ($item) => [
+                    'product_id' => $item['product_id'],
+                    'name' => $item['product_name'] ?? null,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                ])->values()->all(),
             ]);
 
             foreach ($request->items as $item) {
@@ -146,9 +163,26 @@ class OrderController extends Controller
         }
     }
 
+    public function getCustomerOrders(Request $request)
+    {
+        $request->validate([
+            'customer_id' => ['required', 'exists:users,id'],
+        ]);
+
+        $orders = Order::with(['orderItems.product', 'payment'])
+            ->where('customer_id', $request->customer_id)
+            ->orderByDesc('order_id')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders,
+        ]);
+    }
+
     public function getAllOrdersForAdmin()
     {
-        $orders = Order::with(['customer', 'orderItems.product', 'payment'])
+        $orders = Order::with(['customer', 'orderItems.product', 'payment', 'deliveryPerson'])
             ->orderBy('order_id', 'desc')
             ->get();
 
@@ -163,6 +197,9 @@ class OrderController extends Controller
         $order = Order::findOrFail($orderId);
 
         if ($request->has('order_status')) {
+            $request->validate([
+                'order_status' => ['in:pending,confirmed,processing,packing,shipping,shipped,delivered,cancelled'],
+            ]);
             $order->order_status = $request->order_status;
             $order->save();
         }
@@ -177,5 +214,23 @@ class OrderController extends Controller
             'success' => true,
             'message' => 'Order status updated successfully!'
         ]);
+    }
+
+    public function assignDeliveryRider(Request $request, $orderId)
+    {
+        $request->validate(['delivery_person_id' => ['nullable', 'integer']]);
+
+        $order = Order::findOrFail($orderId);
+        if ($request->filled('delivery_person_id')) {
+            User::where('id', $request->delivery_person_id)
+                ->where('role', 'delivery')
+                ->where('is_approved', 1)
+                ->firstOrFail();
+        }
+
+        $order->delivery_person_id = $request->delivery_person_id;
+        $order->save();
+
+        return response()->json(['success' => true, 'order' => $order->load('deliveryPerson')]);
     }
 }

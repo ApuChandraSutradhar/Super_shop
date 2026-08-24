@@ -26,6 +26,7 @@ Route::post('/admin/approve-delivery/{id}', [AuthController::class, 'approveDeli
 // Delivery Riders Routes
 Route::get('/delivery-riders', [DeliveryRiderController::class, 'index']);
 Route::patch('/delivery-riders/{id}/status', [DeliveryRiderController::class, 'updateStatus']);
+Route::patch('/admin/delivery-riders/{id}/status', [DeliveryRiderController::class, 'updateStatus']);
 
 // Admin Payments Route
 Route::get('/payments', [PaymentController::class, 'index']);
@@ -35,11 +36,13 @@ Route::get('/admin/reports', [ReportController::class, 'getReports']);
 
 // Customer Place Order & Coupons
 Route::post('/place-order', [OrderController::class, 'placeOrder']);
+Route::get('/orders', [OrderController::class, 'getCustomerOrders']);
 Route::get('/user-coupons/{userId}', [OrderController::class, 'getUserCoupons']);
 
 // Admin Order APIs
 Route::get('/admin/orders', [OrderController::class, 'getAllOrdersForAdmin']);
 Route::patch('/admin/orders/{id}/status', [OrderController::class, 'updateOrderStatus']);
+Route::patch('/admin/orders/{id}/delivery-rider', [OrderController::class, 'assignDeliveryRider']);
 
 // Admin Customers APIs
 Route::get('/admin/customers', [CustomerController::class, 'index']);

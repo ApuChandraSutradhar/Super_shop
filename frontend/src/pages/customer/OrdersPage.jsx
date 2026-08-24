@@ -1,172 +1,139 @@
-import React, { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import axios from "axios";
 import { FiPackage, FiClock, FiCheckCircle, FiTruck, FiShoppingBag } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
+const ORDERS_URL = "http://127.0.0.1:8000/api/orders";
+
+const readStoredJson = (key) => {
+  const value = localStorage.getItem(key);
+  if (!value) return null;
+  try { return JSON.parse(value); } catch (error) {
+    console.warn(`Unable to parse localStorage item: ${key}`, error);
+    return null;
+  }
+};
+
+const getCurrentCustomer = () => {
+  const user = readStoredJson("user") || readStoredJson("customerUser");
+  const id = user?.id ?? user?.user_id ?? user?.userId ?? localStorage.getItem("userId");
+  return {
+    id: id === null || id === undefined || id === "" ? null : String(id),
+    phone: user?.phone ?? user?.mobile ?? user?.phone_number ?? localStorage.getItem("phone") ?? null,
+  };
+};
+
+const getOrdersFromResponse = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.orders)) return data.orders;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+};
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const savedOrders = localStorage.getItem("user_orders");
-    if (savedOrders) {
-      try {
-        setOrders(JSON.parse(savedOrders));
-      } catch (e) {
-        console.error("Error parsing orders data", e);
-      }
+  const fetchOrders = useCallback(async () => {
+    const currentCustomer = getCurrentCustomer();
+    if (!currentCustomer.id) {
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(ORDERS_URL, {
+        params: { customer_id: currentCustomer.id },
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      // Retain strict client filtering even though the API also scopes the query.
+      const customerOrders = getOrdersFromResponse(response.data).filter(
+        (order) => String(order?.customer_id ?? order?.user_id ?? "") === currentCustomer.id
+      );
+      setOrders(customerOrders);
+    } catch (error) {
+      console.error("Error fetching customer orders:", error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
+  useEffect(() => {
+    const initialFetch = window.setTimeout(fetchOrders, 0);
+    window.addEventListener("focus", fetchOrders);
+    return () => {
+      window.clearTimeout(initialFetch);
+      window.removeEventListener("focus", fetchOrders);
+    };
+  }, [fetchOrders]);
+
   const getStatusBadge = (status) => {
-    switch (status?.toLowerCase()) {
+    switch (String(status || "pending").toLowerCase()) {
       case "delivered":
-        return (
-          <span className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
-            <FiCheckCircle /> Delivered
-          </span>
-        );
+        return <span className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"><FiCheckCircle /> Delivered</span>;
       case "processing":
       case "confirmed":
-        return (
-          <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
-            <FiTruck /> Processing
-          </span>
-        );
+        return <span className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"><FiCheckCircle /> Confirmed</span>;
+      case "shipping":
+        return <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold"><FiTruck /> Shipping</span>;
       default:
-        return (
-          <span className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">
-            <FiClock /> Pending
-          </span>
-        );
+        return <span className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold"><FiClock /> Pending</span>;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50/50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        
-        {/* Header Section */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <FiPackage className="text-[#064e3b]" /> My Orders
-            </h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Track and manage all your placed grocery orders
-            </p>
+            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><FiPackage className="text-[#064e3b]" /> My Orders</h1>
+            <p className="text-sm text-gray-400 mt-1">Track and manage all your placed grocery orders</p>
           </div>
-          <span className="bg-emerald-50 text-[#064e3b] px-4 py-2 rounded-xl text-sm font-bold border border-emerald-100">
-            Total Orders: {orders.length}
-          </span>
+          <span className="bg-emerald-50 text-[#064e3b] px-4 py-2 rounded-xl text-sm font-bold border border-emerald-100">Total Orders: {orders.length}</span>
         </div>
 
-        {/* Orders List */}
-        {orders.length > 0 ? (
+        {loading ? (
+          <div className="bg-white p-12 text-center rounded-2xl border border-gray-100 shadow-sm text-sm text-gray-500">Loading your orders...</div>
+        ) : orders.length > 0 ? (
           <div className="space-y-4">
-            {orders.map((order, index) => (
-              <div
-                key={order.id || index}
-                className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition"
-              >
-                {/* Top Info Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                  <div>
-                    <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                      Order ID
-                    </span>
-                    <p className="text-base font-bold text-gray-800">
-                      #{order.id || `ORD-${1000 + index}`}
-                    </p>
+            {orders.map((order, index) => {
+              const items = order.order_items || order.items || [];
+              const orderId = order.order_id || order.id || order.order_number;
+              const total = order.payable_amount ?? order.total_amount ?? order.totalAmount ?? order.total ?? 0;
+              return (
+                <div key={orderId || index} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                  <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                    <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Order ID</span><p className="text-base font-bold text-gray-800">#{order.order_number || orderId || `ORD-${1000 + index}`}</p></div>
+                    <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Date</span><p className="text-sm font-semibold text-gray-600">{order.created_at ? new Date(order.created_at).toLocaleDateString() : order.date || "N/A"}</p></div>
+                    <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status</span><div className="mt-0.5">{getStatusBadge(order.order_status || order.status)}</div></div>
+                    <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Amount</span><p className="text-lg font-bold text-[#064e3b]">৳{total}</p></div>
                   </div>
-
-                  <div>
-                    <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                      Date
-                    </span>
-                    <p className="text-sm font-semibold text-gray-600">
-                      {order.date || new Date().toLocaleDateString()}
-                    </p>
+                  <div className="py-4 space-y-3">
+                    {items.length > 0 ? items.map((item, idx) => {
+                      const quantity = item.quantity || 1;
+                      const price = item.unit_price ?? item.price ?? item.product?.price ?? 0;
+                      return <div key={item.order_item_id || item.id || idx} className="flex items-center justify-between text-sm py-1"><div className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#064e3b]"></span><span className="font-semibold text-gray-700">{item.product?.name || item.name || "Product Item"}</span><span className="text-xs bg-gray-100 px-2 py-0.5 rounded-md font-bold text-gray-500">x{quantity}</span></div><span className="font-bold text-gray-600">৳{Number(price) * Number(quantity)}</span></div>;
+                    }) : <p className="text-sm text-gray-500 italic">Grocery Items Order</p>}
                   </div>
-
-                  <div>
-                    <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                      Status
-                    </span>
-                    <div className="mt-0.5">
-                      {getStatusBadge(order.status || "Pending")}
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                      Total Amount
-                    </span>
-                    <p className="text-lg font-bold text-[#064e3b]">
-                      ৳{order.totalAmount || order.total || 0}
-                    </p>
-                  </div>
+                  {(order.address || order.delivery_address) && <div className="pt-3 border-t border-gray-50 text-xs text-gray-400"><span className="font-bold text-gray-500">Deliver To:</span>{" "}{order.address || order.delivery_address}</div>}
                 </div>
-
-                {/* Items List */}
-                <div className="py-4 space-y-3">
-                  {order.items && order.items.length > 0 ? (
-                    order.items.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between text-sm py-1"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="w-2 h-2 rounded-full bg-[#064e3b]"></span>
-                          <span className="font-semibold text-gray-700">
-                            {item.name || item.product?.name || "Product Item"}
-                          </span>
-                          <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-md font-bold text-gray-500">
-                            x{item.quantity || 1}
-                          </span>
-                        </div>
-                        <span className="font-bold text-gray-600">
-                          ৳{(item.price || 0) * (item.quantity || 1)}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">
-                      Grocery Items Order
-                    </p>
-                  )}
-                </div>
-
-                {/* Shipping Address Footer */}
-                {order.address && (
-                  <div className="pt-3 border-t border-gray-50 text-xs text-gray-400">
-                    <span className="font-bold text-gray-500">Deliver To:</span>{" "}
-                    {order.address}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
-          /* Empty Orders State */
           <div className="bg-white p-12 text-center rounded-2xl border border-gray-100 shadow-sm space-y-4">
-            <div className="w-20 h-20 bg-emerald-50 text-[#064e3b] rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner">
-              <FiShoppingBag />
-            </div>
-            <h3 className="text-xl font-bold text-gray-800">
-              No Orders Placed Yet!
-            </h3>
-            <p className="text-sm text-gray-400 max-w-md mx-auto">
-              Looks like you haven't placed any grocery order yet. Start shopping now to fill up your bag!
-            </p>
-            <button
-              onClick={() => navigate("/")}
-              className="mt-2 bg-[#064e3b] hover:bg-emerald-900 text-white font-bold px-6 py-3 rounded-xl transition cursor-pointer shadow-sm active:scale-95"
-            >
-              Start Shopping
-            </button>
+            <div className="w-20 h-20 bg-emerald-50 text-[#064e3b] rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner"><FiShoppingBag /></div>
+            <h3 className="text-xl font-bold text-gray-800">No Orders Placed Yet!</h3>
+            <p className="text-sm text-gray-400 max-w-md mx-auto">Looks like you haven't placed any grocery order yet. Start shopping now to fill up your bag!</p>
+            <button onClick={() => navigate("/")} className="mt-2 bg-[#064e3b] hover:bg-emerald-900 text-white font-bold px-6 py-3 rounded-xl transition cursor-pointer shadow-sm active:scale-95">Start Shopping</button>
           </div>
         )}
-
       </div>
     </div>
   );

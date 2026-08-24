@@ -4,13 +4,10 @@ import App from './App.jsx'
 import './index.css'
 
 // 1. CartProvider Import করুন
-import { CartProvider } from './context/CartContext.jsx' 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {/* 2. App কে CartProvider দিয়ে র‍্যাপ করুন */}
-    <CartProvider>
-      <App />
-    </CartProvider>
+    <App />
   </React.StrictMode>,
 )

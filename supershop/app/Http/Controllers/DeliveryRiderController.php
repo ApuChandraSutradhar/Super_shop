@@ -11,7 +11,9 @@ class DeliveryRiderController extends Controller
     // Fetch all delivery riders
     public function index()
     {
-        $riders = User::where('role', 'delivery')->get();
+        $riders = User::where('role', 'delivery')
+            ->when(request()->boolean('approved'), fn ($query) => $query->where('is_approved', 1))
+            ->get();
 
         return response()->json([
             'status' => 'success',
@@ -22,8 +24,9 @@ class DeliveryRiderController extends Controller
     // Toggle rider approval / block status
     public function updateStatus(Request $request, $id)
     {
-        $rider = User::findOrFail($id);
-        $rider->is_approved = $request->is_approved;
+        $request->validate(['is_approved' => ['required', 'boolean']]);
+        $rider = User::where('id', $id)->where('role', 'delivery')->firstOrFail();
+        $rider->is_approved = $request->boolean('is_approved');
         $rider->save();
 
         return response()->json([

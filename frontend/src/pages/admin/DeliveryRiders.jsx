@@ -86,14 +86,14 @@ export default function DeliveryRiders() {
                 <th className="pb-4">RIDER NAME</th>
                 <th className="pb-4">CONTACT INFO</th>
                 <th className="pb-4">TOTAL DELIVERIES</th>
-                <th className="pb-4">STATUS</th>
+                <th className="pb-4">IS APPROVED</th>
                 <th className="pb-4 text-right pr-6">ACTIONS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {filteredRiders.length > 0 ? (
                 filteredRiders.map((rider) => {
-                  const isBlocked = rider.is_approved === 0;
+                  const isBlocked = !Number(rider.is_approved);
                   return (
                     <tr key={rider.id} className="hover:bg-gray-50/50">
                       <td className="py-4 flex items-center gap-3">
@@ -120,7 +120,7 @@ export default function DeliveryRiders() {
                               : "bg-emerald-100 text-emerald-600"
                           }`}
                         >
-                          {isBlocked ? "Blocked" : "Active"}
+                          {isBlocked ? "Pending" : "Approved"}
                         </span>
                       </td>
                       <td className="py-4 text-right pr-6">
@@ -137,7 +137,7 @@ export default function DeliveryRiders() {
                               isBlocked ? "text-emerald-600" : "text-red-500"
                             } hover:underline cursor-pointer`}
                           >
-                            {isBlocked ? "Unblock" : "Block"}
+                            {isBlocked ? "Approve" : "Block"}
                           </button>
                         </div>
                       </td>

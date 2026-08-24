@@ -61,6 +61,7 @@ export default function Checkout() {
   const [trxId, setTrxId] = useState("");
   const [orderId, setOrderId] = useState("");
   const [finalGrandTotal, setFinalGrandTotal] = useState(0);
+  const [confirmedItems, setConfirmedItems] = useState([]);
 
   const deliveryFee = formData.city === "Dhaka" ? 60 : formData.city === "Outside Dhaka" ? 120 : 0;
   
@@ -115,6 +116,20 @@ export default function Checkout() {
     })();
 
     const finalTransactionId = normalizedPaymentMethod !== "COD" ? forcedTrxId || trxId || "" : null;
+    const shippingAddress = [formData.address, formData.city].filter(Boolean).join(", ");
+    const orderedItems = cartItems.map((item) => {
+      const product = item?.product || item;
+      const originalPrice = Number(product?.price) || 0;
+      const discountPercent = Number(product?.discount) || 0;
+      const unitPrice = discountPercent > 0 ? originalPrice - (originalPrice * discountPercent) / 100 : originalPrice;
+
+      return {
+        product_id: product?.id || item?.id,
+        product_name: product?.name || "Product Item",
+        quantity: item?.quantity || 1,
+        unit_price: unitPrice,
+      };
+    });
 
     const orderPayload = {
       customer_id: userId,
@@ -127,18 +142,12 @@ export default function Checkout() {
       transaction_id: finalTransactionId,
       coupon_code: appliedCoupon ? couponCode : "AUTO2000_OFFER",
       is_used: appliedCoupon ? 1 : 0,
-      items: cartItems.map((item) => {
-        const product = item?.product || item;
-        const originalPrice = Number(product?.price) || 0;
-        const discountPercent = Number(product?.discount) || 0;
-        const finalPrice = discountPercent > 0 ? originalPrice - (originalPrice * discountPercent) / 100 : originalPrice;
-
-        return {
-          product_id: product?.id || item?.id,
-          quantity: item?.quantity || 1,
-          unit_price: finalPrice,
-        };
-      }),
+      delivery_name: formData.fullName,
+      delivery_phone: formData.phone,
+      delivery_city: formData.city,
+      shipping_address: shippingAddress,
+      order_notes: formData.notes,
+      items: orderedItems,
     };
 
     try {
@@ -152,27 +161,18 @@ export default function Checkout() {
       }
 
       setOrderId(generatedOrderId);
+      setConfirmedItems(orderedItems);
 
       // LocalStorage
       const newOrder = {
         id: generatedOrderId,
+        customer_id: userId,
         date: new Date().toLocaleDateString("en-GB"),
-        items: cartItems.map((item) => {
-          const product = item?.product || item;
-          const originalPrice = Number(product?.price) || 0;
-          const discountPercent = Number(product?.discount) || 0;
-          const finalPrice = discountPercent > 0 ? originalPrice - (originalPrice * discountPercent) / 100 : originalPrice;
-
-          return {
-            name: product?.name || "Product Item",
-            quantity: item?.quantity || 1,
-            price: finalPrice,
-          };
-        }),
+        items: orderedItems.map((item) => ({ name: item.product_name, quantity: item.quantity, price: item.unit_price })),
         totalAmount: currentGrandTotal.toFixed(2),
         discountAmount: currentDiscount.toFixed(2),
         status: "Pending",
-        address: `${formData.address}, ${formData.city}`,
+        address: shippingAddress,
         paymentMethod: paymentMethod,
       };
 
@@ -187,26 +187,17 @@ export default function Checkout() {
 
       const fallbackOrderId = "FM-" + Math.floor(100000 + Math.random() * 900000);
       setOrderId(fallbackOrderId);
+      setConfirmedItems(orderedItems);
 
       const newOrder = {
         id: fallbackOrderId,
+        customer_id: userId,
         date: new Date().toLocaleDateString("en-GB"),
-        items: cartItems.map((item) => {
-          const product = item?.product || item;
-          const originalPrice = Number(product?.price) || 0;
-          const discountPercent = Number(product?.discount) || 0;
-          const finalPrice = discountPercent > 0 ? originalPrice - (originalPrice * discountPercent) / 100 : originalPrice;
-
-          return {
-            name: product?.name || "Product Item",
-            quantity: item?.quantity || 1,
-            price: finalPrice,
-          };
-        }),
+        items: orderedItems.map((item) => ({ name: item.product_name, quantity: item.quantity, price: item.unit_price })),
         totalAmount: currentGrandTotal.toFixed(2),
         discountAmount: currentDiscount.toFixed(2),
         status: "Pending",
-        address: `${formData.address}, ${formData.city}`,
+        address: shippingAddress,
         paymentMethod: paymentMethod,
       };
 
@@ -249,6 +240,7 @@ export default function Checkout() {
             formData={formData}
             paymentMethod={paymentMethod}
             grandTotal={finalGrandTotal}
+            items={confirmedItems}
           />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { FiX } from "react-icons/fi";
+import { useToast } from "../../context/ToastContext";
 
-export default function AuthModal({ closeModal }) {
+export default function AuthModal({ closeModal, onAuthenticated }) {
+  const { showLoginSuccess } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "" });
   const [error, setError] = useState("");
@@ -23,9 +25,9 @@ export default function AuthModal({ closeModal }) {
       const res = await axios.post(endpoint, formData);
       localStorage.setItem("token", res.data.access_token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      alert(isLogin ? "Login Successful!" : "Registration Successful!");
+      if (isLogin) showLoginSuccess();
+      onAuthenticated?.(res.data.user);
       closeModal();
-      window.location.reload();
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong!");
     }
