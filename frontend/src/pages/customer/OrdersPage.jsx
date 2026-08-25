@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { FiPackage, FiClock, FiCheckCircle, FiTruck, FiShoppingBag } from "react-icons/fi";
+import { FiPackage, FiClock, FiCheckCircle, FiTruck, FiShoppingBag, FiStar, FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 const ORDERS_URL = "http://127.0.0.1:8000/api/orders";
@@ -33,6 +33,7 @@ const getOrdersFromResponse = (data) => {
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [feedbackOrder, setFeedbackOrder] = useState(null);
   const navigate = useNavigate();
 
   const fetchOrders = useCallback(async () => {
@@ -66,9 +67,11 @@ export default function OrdersPage() {
 
   useEffect(() => {
     const initialFetch = window.setTimeout(fetchOrders, 0);
+    const statusRefresh = window.setInterval(fetchOrders, 20000);
     window.addEventListener("focus", fetchOrders);
     return () => {
       window.clearTimeout(initialFetch);
+      window.clearInterval(statusRefresh);
       window.removeEventListener("focus", fetchOrders);
     };
   }, [fetchOrders]);
@@ -81,7 +84,10 @@ export default function OrdersPage() {
       case "confirmed":
         return <span className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"><FiCheckCircle /> Confirmed</span>;
       case "shipping":
+      case "shipped":
         return <span className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold"><FiTruck /> Shipping</span>;
+      case "packing":
+        return <span className="flex items-center gap-1 bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-xs font-bold"><FiPackage /> Packing</span>;
       default:
         return <span className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold"><FiClock /> Pending</span>;
     }
@@ -112,6 +118,7 @@ export default function OrdersPage() {
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Order ID</span><p className="text-base font-bold text-gray-800">#{order.order_number || orderId || `ORD-${1000 + index}`}</p></div>
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Date</span><p className="text-sm font-semibold text-gray-600">{order.created_at ? new Date(order.created_at).toLocaleDateString() : order.date || "N/A"}</p></div>
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status</span><div className="mt-0.5">{getStatusBadge(order.order_status || order.status)}</div></div>
+                    <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Feedback</span><button disabled={String(order.order_status || order.status).toLowerCase() !== "delivered"} onClick={() => setFeedbackOrder(order)} className="mt-1 flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"><FiStar /> Feedback</button></div>
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Amount</span><p className="text-lg font-bold text-[#064e3b]">৳{total}</p></div>
                   </div>
                   <div className="py-4 space-y-3">
@@ -121,7 +128,7 @@ export default function OrdersPage() {
                       return <div key={item.order_item_id || item.id || idx} className="flex items-center justify-between text-sm py-1"><div className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#064e3b]"></span><span className="font-semibold text-gray-700">{item.product?.name || item.name || "Product Item"}</span><span className="text-xs bg-gray-100 px-2 py-0.5 rounded-md font-bold text-gray-500">x{quantity}</span></div><span className="font-bold text-gray-600">৳{Number(price) * Number(quantity)}</span></div>;
                     }) : <p className="text-sm text-gray-500 italic">Grocery Items Order</p>}
                   </div>
-                  {(order.address || order.delivery_address) && <div className="pt-3 border-t border-gray-50 text-xs text-gray-400"><span className="font-bold text-gray-500">Deliver To:</span>{" "}{order.address || order.delivery_address}</div>}
+                  {(order.shipping_address || order.address || order.delivery_address) && <div className="pt-3 border-t border-gray-50 text-xs text-gray-400"><span className="font-bold text-gray-500">Deliver To:</span>{" "}{order.shipping_address || order.address || order.delivery_address}</div>}
                 </div>
               );
             })}
@@ -134,7 +141,31 @@ export default function OrdersPage() {
             <button onClick={() => navigate("/")} className="mt-2 bg-[#064e3b] hover:bg-emerald-900 text-white font-bold px-6 py-3 rounded-xl transition cursor-pointer shadow-sm active:scale-95">Start Shopping</button>
           </div>
         )}
+        {feedbackOrder && <FeedbackModal order={feedbackOrder} onClose={() => setFeedbackOrder(null)} />}
       </div>
     </div>
   );
+}
+
+function FeedbackModal({ order, onClose }) {
+  const customer = getCurrentCustomer();
+  const items = order.order_items || order.items || [];
+  const [productId, setProductId] = useState(items[0]?.product_id || items[0]?.product?.id || "");
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const submitFeedback = async (event) => {
+    event.preventDefault();
+    if (!productId) { setError("Select a product to review."); return; }
+    try {
+      setSubmitting(true); setError("");
+      await axios.post("http://127.0.0.1:8000/api/feedback", { order_id: order.order_id || order.id, customer_id: customer.id, product_id: productId, rating_stars: rating, comment });
+      onClose();
+    } catch (requestError) { setError(requestError.response?.data?.message || "Unable to save feedback. Please try again."); }
+    finally { setSubmitting(false); }
+  };
+
+  return <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 p-4"><form onSubmit={submitFeedback} className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 hover:bg-gray-100"><FiX /></button><h2 className="text-xl font-bold text-[#064e3b]">Rate your order</h2><p className="mt-1 text-sm text-gray-500">Your feedback helps FreshMart improve.</p>{error && <p className="mt-4 rounded-lg bg-red-50 p-2 text-sm text-red-600">{error}</p>}<label className="mt-5 block text-sm font-bold text-gray-700">Product<select value={productId} onChange={(event) => setProductId(event.target.value)} className="mt-1.5 w-full rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-emerald-600">{items.map((item, index) => <option key={item.order_item_id || index} value={item.product_id || item.product?.id}>{item.product?.name || item.name || "Product"}</option>)}</select></label><div className="mt-5"><p className="text-sm font-bold text-gray-700">Rating</p><div className="mt-2 flex gap-2">{[1, 2, 3, 4, 5].map((star) => <button key={star} type="button" onClick={() => setRating(star)} aria-label={`${star} stars`} className={star <= rating ? "text-amber-400" : "text-gray-300"}><FiStar className="fill-current text-2xl" /></button>)}</div></div><label className="mt-5 block text-sm font-bold text-gray-700">Comment<textarea value={comment} onChange={(event) => setComment(event.target.value)} maxLength="1000" placeholder="Tell us about your experience (optional)" className="mt-1.5 min-h-28 w-full rounded-xl border border-gray-200 p-3 text-sm outline-none focus:border-emerald-600" /></label><button disabled={submitting} className="mt-5 w-full rounded-xl bg-[#064e3b] py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">{submitting ? "Submitting..." : "Submit feedback"}</button></form></div>;
 }

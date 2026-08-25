@@ -1,17 +1,15 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { FiTruck, FiHome, FiLogOut } from "react-icons/fi";
+import { Link } from "react-router-dom";
+import { FiTruck, FiHome, FiLogOut, FiList, FiGrid } from "react-icons/fi";
 
 export default function DeliverySidebar() {
-  const navigate = useNavigate();
-
   const handleLogout = () => {
+    ["token", "access_token", "user", "role", "deliveryUser"].forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-
-    navigate("/delivery", { replace: true });
+    window.location.replace("/login");
   };
 
   return (
@@ -21,12 +19,9 @@ export default function DeliverySidebar() {
           Rider Panel
         </h2>
         <nav className="flex flex-col gap-3">
-          <Link
-            to="/delivery/dashboard"
-            className="flex items-center gap-3 p-3 hover:bg-emerald-800 rounded-xl transition-all"
-          >
-            <FiTruck /> Assigned Orders
-          </Link>
+          <Link to="/delivery/dashboard" className="flex items-center gap-3 p-3 hover:bg-emerald-800 rounded-xl transition-all"><FiGrid /> Dashboard</Link>
+          <Link to="/delivery/orders" className="flex items-center gap-3 p-3 hover:bg-emerald-800 rounded-xl transition-all"><FiTruck /> Assigned Orders</Link>
+          <Link to="/delivery/completed-orders" className="flex items-center gap-3 p-3 hover:bg-emerald-800 rounded-xl transition-all"><FiList /> Completed Orders</Link>
         </nav>
       </div>
 

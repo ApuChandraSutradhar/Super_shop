@@ -41,6 +41,8 @@ export default function DeliveryAuth() {
 
         if ((res.data.success || user) && userRole === "delivery") {
           localStorage.setItem("deliveryUser", JSON.stringify(user));
+          const token = res.data?.access_token || res.data?.token;
+          if (token) localStorage.setItem("token", token);
           navigate("/delivery/dashboard");
         } else {
           setError(`Access Denied: Current role is "${rawRole || 'unknown'}". Delivery role required.`);

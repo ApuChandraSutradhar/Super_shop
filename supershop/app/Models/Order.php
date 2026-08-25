@@ -54,4 +54,14 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'delivery_person_id', 'id');
     }
+
+    public function delivery()
+    {
+        return $this->hasOne(Delivery::class, 'order_id', 'order_id');
+    }
+
+    public function feedback()
+    {
+        return $this->hasMany(Feedback::class, 'order_id', 'order_id');
+    }
 }

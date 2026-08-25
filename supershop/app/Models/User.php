@@ -50,4 +50,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function assignedDeliveries()
+    {
+        return $this->hasMany(Order::class, 'delivery_person_id', 'id');
+    }
+
+    public function feedback()
+    {
+        return $this->hasMany(Feedback::class, 'customer_id', 'id');
+    }
 }

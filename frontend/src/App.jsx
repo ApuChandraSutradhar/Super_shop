@@ -36,10 +36,13 @@ import Settings from "./pages/admin/Settings";
 
 // Protected Route Import
 import AdminProtectedRoute from "./routes/AdminProtectedRoute";
+import DeliveryProtectedRoute from "./routes/DeliveryProtectedRoute";
 
 // Delivery Panel Imports
 import DeliveryAuth from "./pages/delivery/DeliveryAuth";
 import DeliveryDashboard from "./pages/delivery/DeliveryDashboard";
+import DeliveryOrders from "./pages/delivery/DeliveryOrders";
+import DeliveryLayout from "./components/delivery/DeliveryLayout";
 
 export default function App() {
   return (
@@ -128,7 +131,14 @@ export default function App() {
 
               {/* Delivery Panel Routes */}
               <Route path="/delivery" element={<DeliveryAuth />} />
-              <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+              <Route path="/login" element={<DeliveryAuth />} />
+              <Route element={<DeliveryProtectedRoute />}>
+                <Route path="/delivery" element={<DeliveryLayout />}>
+                  <Route path="dashboard" element={<DeliveryDashboard />} />
+                  <Route path="orders" element={<DeliveryOrders />} />
+                  <Route path="completed-orders" element={<DeliveryOrders completed />} />
+                </Route>
+              </Route>
 
               {/* Catch-All 404 Route */}
               <Route

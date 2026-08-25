@@ -13,6 +13,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DeliveryRiderController;
 use App\Http\Controllers\PaymentController; 
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DeliveryOrderController;
+use App\Http\Controllers\FeedbackController;
 
 // Coupon Routes
 Route::get('/coupons', [CouponController::class, 'getUserCoupons']);
@@ -43,6 +45,14 @@ Route::get('/user-coupons/{userId}', [OrderController::class, 'getUserCoupons'])
 Route::get('/admin/orders', [OrderController::class, 'getAllOrdersForAdmin']);
 Route::patch('/admin/orders/{id}/status', [OrderController::class, 'updateOrderStatus']);
 Route::patch('/admin/orders/{id}/delivery-rider', [OrderController::class, 'assignDeliveryRider']);
+
+// Delivery rider order APIs
+Route::get('/delivery/dashboard', [DeliveryOrderController::class, 'dashboard']);
+Route::get('/delivery/orders', [DeliveryOrderController::class, 'assignedOrders']);
+Route::patch('/delivery/orders/{id}/status', [DeliveryOrderController::class, 'updateStatus']);
+
+// Customer feedback API
+Route::post('/feedback', [FeedbackController::class, 'store']);
 
 // Admin Customers APIs
 Route::get('/admin/customers', [CustomerController::class, 'index']);
