@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\AdminNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -36,6 +37,14 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
             'role'     => 'customer',
         ]);
+
+        AdminNotification::record(
+            'customer_registration',
+            'New customer registration',
+            "{$user->name} created a customer account.",
+            '/admin/customers',
+            ['customer_id' => $user->id]
+        );
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\AdminNotification;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -62,6 +63,14 @@ class AuthController extends Controller
             $user->is_approved = 0;
             $user->save();
         }
+
+        AdminNotification::record(
+            'delivery_registration',
+            'New delivery rider awaiting approval',
+            "{$user->name} registered as a delivery rider.",
+            '/admin/delivery-riders',
+            ['rider_id' => $user->id]
+        );
 
         return response()->json([
             'success' => true,

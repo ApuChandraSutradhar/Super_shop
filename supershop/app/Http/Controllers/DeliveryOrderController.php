@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\AdminNotification;
 use Illuminate\Http\Request;
 
 class DeliveryOrderController extends Controller
@@ -68,6 +69,15 @@ class DeliveryOrderController extends Controller
 
         $order->order_status = $data['order_status'];
         $order->save();
+
+        $rider = User::findOrFail($data['delivery_person_id']);
+        AdminNotification::record(
+            'delivery_status',
+            'Delivery status updated',
+            "{$rider->name} marked order {$order->order_number} as " . str_replace('_', ' ', $data['order_status']) . '.',
+            '/admin/orders',
+            ['order_id' => $order->order_id, 'status' => $data['order_status']]
+        );
 
         $delivery = Delivery::updateOrCreate(
             ['order_id' => $order->order_id],

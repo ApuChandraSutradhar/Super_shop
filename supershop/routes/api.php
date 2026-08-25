@@ -15,6 +15,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\AdminNotificationController;
+use App\Http\Controllers\DeliveryNotificationController;
 
 // Coupon Routes
 Route::get('/coupons', [CouponController::class, 'getUserCoupons']);
@@ -35,6 +37,12 @@ Route::get('/payments', [PaymentController::class, 'index']);
 
 // Admin Reports Route
 Route::get('/admin/reports', [ReportController::class, 'getReports']);
+
+// Admin notifications
+Route::get('/admin/notifications', [AdminNotificationController::class, 'index']);
+Route::patch('/admin/notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead']);
+Route::get('/delivery/notifications', [DeliveryNotificationController::class, 'index']);
+Route::patch('/delivery/notifications/{notification}/read', [DeliveryNotificationController::class, 'markAsRead']);
 
 // Customer Place Order & Coupons
 Route::post('/place-order', [OrderController::class, 'placeOrder']);

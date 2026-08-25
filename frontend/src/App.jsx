@@ -136,6 +136,7 @@ export default function App() {
                 <Route path="/delivery" element={<DeliveryLayout />}>
                   <Route path="dashboard" element={<DeliveryDashboard />} />
                   <Route path="orders" element={<DeliveryOrders />} />
+                  <Route path="assigned-orders" element={<DeliveryOrders />} />
                   <Route path="completed-orders" element={<DeliveryOrders completed />} />
                 </Route>
               </Route>

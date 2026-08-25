@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\AdminNotification;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
@@ -119,6 +120,14 @@ class OrderController extends Controller
                 'amount'         => (float) $request->payable_amount,
             ]);
 
+            AdminNotification::record(
+                'new_order',
+                'New order placed',
+                "Order {$order->order_number} was placed by {$order->delivery_name}.",
+                '/admin/orders',
+                ['order_id' => $order->order_id]
+            );
+
             $cart = DB::table('carts')->where('user_id', $request->customer_id)->first();
             if ($cart) {
                 DB::table('cart_items')->where('cart_id', $cart->cart_id)->delete();
@@ -195,13 +204,26 @@ class OrderController extends Controller
     public function updateOrderStatus(Request $request, $orderId)
     {
         $order = Order::findOrFail($orderId);
+        $statusChanged = false;
 
         if ($request->has('order_status')) {
             $request->validate([
                 'order_status' => ['in:pending,confirmed,processing,packing,shipping,shipped,delivered,cancelled'],
             ]);
+            $statusChanged = $order->order_status !== $request->order_status;
             $order->order_status = $request->order_status;
             $order->save();
+        }
+
+        if ($statusChanged && $order->delivery_person_id) {
+            AdminNotification::record(
+                'order_status_update',
+                'Order status updated',
+                "Admin changed order {$order->order_number} to " . str_replace('_', ' ', $order->order_status) . '.',
+                '/delivery/assigned-orders',
+                ['order_id' => $order->order_id, 'status' => $order->order_status],
+                $order->delivery_person_id
+            );
         }
 
         if ($request->has('payment_status')) {
@@ -228,8 +250,20 @@ class OrderController extends Controller
                 ->firstOrFail();
         }
 
+        $previousRiderId = $order->delivery_person_id;
         $order->delivery_person_id = $request->delivery_person_id;
         $order->save();
+
+        if ($order->delivery_person_id && (int) $previousRiderId !== (int) $order->delivery_person_id) {
+            AdminNotification::record(
+                'order_assigned',
+                'New order assigned',
+                "New order {$order->order_number} has been assigned to you.",
+                '/delivery/assigned-orders',
+                ['order_id' => $order->order_id],
+                $order->delivery_person_id
+            );
+        }
 
         return response()->json(['success' => true, 'order' => $order->load('deliveryPerson')]);
     }
