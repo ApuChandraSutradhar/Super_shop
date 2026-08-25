@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { FiPackage, FiClock, FiCheckCircle, FiTruck, FiShoppingBag, FiStar, FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import CancellationRequestModal from "../../components/layout/CancellationRequestModal";
 
 const ORDERS_URL = "http://127.0.0.1:8000/api/orders";
 
@@ -34,6 +35,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [feedbackOrder, setFeedbackOrder] = useState(null);
+  const [cancellationOrder, setCancellationOrder] = useState(null);
   const navigate = useNavigate();
 
   const fetchOrders = useCallback(async () => {
@@ -93,6 +95,13 @@ export default function OrdersPage() {
     }
   };
 
+  const getRefundBadge = (refund) => {
+    const status = String(refund?.cancellation_status || "").toLowerCase();
+    if (status === "approved") return <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Refund Approved</span>;
+    if (status === "rejected") return <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">Refund Rejected</span>;
+    return <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">Cancellation Requested</span>;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50/50 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -112,13 +121,19 @@ export default function OrdersPage() {
               const items = order.order_items || order.items || [];
               const orderId = order.order_id || order.id || order.order_number;
               const total = order.payable_amount ?? order.total_amount ?? order.totalAmount ?? order.total ?? 0;
+              const status = String(order.order_status || order.status || "pending").toLowerCase();
+              const refund = order.refund;
+              const canCancel = ["pending", "confirmed", "processing", "packing", "shipping", "shipped"].includes(status) && !refund;
               return (
                 <div key={orderId || index} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
                   <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Order ID</span><p className="text-base font-bold text-gray-800">#{order.order_number || orderId || `ORD-${1000 + index}`}</p></div>
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Date</span><p className="text-sm font-semibold text-gray-600">{order.created_at ? new Date(order.created_at).toLocaleDateString() : order.date || "N/A"}</p></div>
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Status</span><div className="mt-0.5">{getStatusBadge(order.order_status || order.status)}</div></div>
+                    {refund && <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Refund Status</span><div className="mt-0.5">{getRefundBadge(refund)}</div></div>}
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Feedback</span><button disabled={String(order.order_status || order.status).toLowerCase() !== "delivered"} onClick={() => setFeedbackOrder(order)} className="mt-1 flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"><FiStar /> Feedback</button></div>
+                    <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Cancellation</span><button disabled={!canCancel} onClick={() => setCancellationOrder(order)} className="mt-1 flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">Order Cancel</button></div>
+                    {refund && <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Refund Details</span><button onClick={() => navigate(`/my-orders/refund/${orderId}`)} className="mt-1 rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-sky-700">View Refund Details</button></div>}
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Amount</span><p className="text-lg font-bold text-[#064e3b]">৳{total}</p></div>
                   </div>
                   <div className="py-4 space-y-3">
@@ -142,6 +157,7 @@ export default function OrdersPage() {
           </div>
         )}
         {feedbackOrder && <FeedbackModal order={feedbackOrder} onClose={() => setFeedbackOrder(null)} />}
+        {cancellationOrder && <CancellationRequestModal order={cancellationOrder} customerId={getCurrentCustomer().id} onClose={() => setCancellationOrder(null)} onSubmitted={fetchOrders} />}
       </div>
     </div>
   );

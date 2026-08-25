@@ -5,6 +5,7 @@ export default function PaymentMethod({
   setPaymentMethod,
   trxId,
   setTrxId,
+  setSenderNumber,
   grandTotal,
   onBack,
   onConfirm,
@@ -80,8 +81,9 @@ export default function PaymentMethod({
       }
       const generatedTrx = "BK" + Math.floor(10000000 + Math.random() * 90000000);
       setTrxId(generatedTrx);
+      setSenderNumber(bkashNumber);
       setShowBkashModal(false);
-      onConfirm(generatedTrx);
+      onConfirm(generatedTrx, bkashNumber);
     }
   };
 
@@ -97,8 +99,9 @@ export default function PaymentMethod({
     }
     const generatedTrx = "NG" + Math.floor(10000000 + Math.random() * 90000000);
     setTrxId(generatedTrx);
+    setSenderNumber(nagadNumber);
     setShowNagadModal(false);
-    onConfirm(generatedTrx);
+    onConfirm(generatedTrx, nagadNumber);
   };
 
   return (

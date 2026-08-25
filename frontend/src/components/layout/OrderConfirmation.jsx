@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import CancellationRequestModal from "./CancellationRequestModal";
 
-export default function OrderConfirmation({ orderId, formData, paymentMethod, grandTotal, items = [] }) {
+export default function OrderConfirmation({ orderId, orderDatabaseId, customerId, formData, paymentMethod, grandTotal, items = [] }) {
   const handlePrint = () => window.print();
+  const [showCancellation, setShowCancellation] = useState(false);
 
   return (
     <>
@@ -71,8 +74,10 @@ export default function OrderConfirmation({ orderId, formData, paymentMethod, gr
       <div className="no-print flex flex-wrap justify-center gap-3">
         <button type="button" onClick={handlePrint} className="bg-gray-800 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-700 transition shadow-md cursor-pointer">Print Receipt / Invoice</button>
         <Link to="/" className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition shadow-md">Back to Home</Link>
+        {orderDatabaseId && <button type="button" onClick={() => setShowCancellation(true)} className="w-full bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition shadow-md">Order Cancel</button>}
       </div>
       </div>
+      {showCancellation && <CancellationRequestModal order={{ order_id: orderDatabaseId, order_number: orderId }} customerId={customerId} onClose={() => setShowCancellation(false)} />}
     </>
   );
 }

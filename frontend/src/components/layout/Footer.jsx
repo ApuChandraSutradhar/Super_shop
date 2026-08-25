@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { FaFacebookF, FaLinkedinIn, FaTwitter, FaYoutube } from "react-icons/fa";
 
 export default function Footer() {
@@ -85,11 +86,11 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold text-sm mb-4">Quick Links</h3>
             <ul className="space-y-2.5 text-xs text-gray-400">
-              {["Home", "About Us", "Shop", "Offers", "Blog", "Contact"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="hover:text-emerald-400 transition">{item}</a>
-                </li>
-              ))}
+              <li><Link to="/" className="hover:text-emerald-400 transition">Home</Link></li>
+              <li><Link to="/about-us" className="hover:text-emerald-400 transition">About Us</Link></li>
+              <li><Link to="/shop" className="hover:text-emerald-400 transition">Shop</Link></li>
+              <li><Link to="/offers" className="hover:text-emerald-400 transition">Offers</Link></li>
+              <li><Link to="/contact" className="hover:text-emerald-400 transition">Contact</Link></li>
             </ul>
           </div>
 
@@ -97,11 +98,10 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold text-sm mb-4">Customer</h3>
             <ul className="space-y-2.5 text-xs text-gray-400">
-              {["My Account", "My Orders", "Track Order", "Wishlist", "Return Policy", "FAQ"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="hover:text-emerald-400 transition">{item}</a>
-                </li>
-              ))}
+              <li><Link to="/profile" className="hover:text-emerald-400 transition">My Account</Link></li>
+              <li><Link to="/my-orders" className="hover:text-emerald-400 transition">My Orders</Link></li>
+              <li><Link to="/wishlist" className="hover:text-emerald-400 transition">Wishlist</Link></li>
+              <li><Link to="/return-policy" className="hover:text-emerald-400 transition">Return Policy</Link></li>
             </ul>
           </div>
 
@@ -109,11 +109,8 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold text-sm mb-4">Legal</h3>
             <ul className="space-y-2.5 text-xs text-gray-400">
-              {["Privacy Policy", "Terms of Service", "Cookie Policy", "Disclaimer", "Sitemap"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="hover:text-emerald-400 transition">{item}</a>
-                </li>
-              ))}
+              <li><Link to="/privacy-policy" className="hover:text-emerald-400 transition">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="hover:text-emerald-400 transition">Terms of Service</Link></li>
             </ul>
           </div>
 

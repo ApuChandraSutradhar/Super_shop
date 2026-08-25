@@ -21,6 +21,8 @@ export default function AdminLayout() {
         return "Delivery Riders";
       case "/admin/settings":
         return "Admin Settings";
+      case "/admin/refunds":
+        return "Refunds Management";
       default:
         return "Admin Portal";
     }

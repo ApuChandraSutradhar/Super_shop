@@ -12,6 +12,7 @@ import CustomerLayout from "./layouts/CustomerLayout";
 import Home from "./pages/customer/Home";
 import ProfilePage from "./pages/customer/ProfilePage";
 import OrdersPage from "./pages/customer/OrdersPage";
+import RefundDetails from "./pages/customer/RefundDetails";
 import Coupons from "./pages/customer/Coupons";
 
 // Import Wishlist from components/layout/Wishlist
@@ -20,6 +21,13 @@ import Wishlist from "./components/layout/Wishlist";
 // Global Layout Components Imports
 import CartDrawer from "./components/layout/CartDrawer";
 import Checkout from "./components/layout/Checkout";
+import ReturnPolicy from "./components/footerdetail/ReturnPolicy";
+import PrivacyPolicy from "./components/footerdetail/PrivacyPolicy";
+import TermsOfService from "./components/footerdetail/TermsOfService";
+import ScrollToTop from "./components/ScrollToTop";
+import AboutUs from "./components/footerdetail/AboutUs";
+import Offers from "./components/footerdetail/Offers";
+import Contact from "./components/footerdetail/Contact";
 
 // Admin Panel Imports
 import AdminLayout from "./components/admin/AdminLayout";
@@ -33,6 +41,7 @@ import Payments from "./pages/admin/Payments";
 import DeliveryRiders from "./pages/admin/DeliveryRiders";
 import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
+import Refunds from "./pages/admin/Refunds";
 
 // Protected Route Import
 import AdminProtectedRoute from "./routes/AdminProtectedRoute";
@@ -51,6 +60,7 @@ export default function App() {
         <CartProvider>
           <WishlistProvider>
           <Router>
+            <ScrollToTop />
             {/* Global Cart Drawer */}
             <CartDrawer />
 
@@ -84,6 +94,17 @@ export default function App() {
               />
 
               <Route
+                path="/my-orders"
+                element={
+                  <CustomerLayout>
+                    <OrdersPage />
+                  </CustomerLayout>
+                }
+              />
+
+              <Route path="/my-orders/refund/:orderId" element={<CustomerLayout><RefundDetails /></CustomerLayout>} />
+
+              <Route
                 path="/wishlist"
                 element={
                   <CustomerLayout>
@@ -111,6 +132,23 @@ export default function App() {
                 }
               />
 
+              <Route
+                path="/return-policy"
+                element={
+                  <CustomerLayout>
+                    <ReturnPolicy />
+                  </CustomerLayout>
+                }
+              />
+
+              <Route path="/privacy-policy" element={<CustomerLayout><PrivacyPolicy /></CustomerLayout>} />
+              <Route path="/terms-of-service" element={<CustomerLayout><TermsOfService /></CustomerLayout>} />
+
+              <Route path="/about-us" element={<CustomerLayout><AboutUs /></CustomerLayout>} />
+              <Route path="/shop" element={<CustomerLayout><Home /></CustomerLayout>} />
+              <Route path="/offers" element={<CustomerLayout><Offers /></CustomerLayout>} />
+              <Route path="/contact" element={<CustomerLayout><Contact /></CustomerLayout>} />
+
               {/* Admin Panel Login (Without Layout) */}
               <Route path="/admin" element={<AdminLogin />} />
 
@@ -125,6 +163,7 @@ export default function App() {
                   <Route path="payments" element={<Payments />} />
                   <Route path="delivery-riders" element={<DeliveryRiders />} />
                   <Route path="reports" element={<Reports />} />
+                  <Route path="refunds" element={<Refunds />} />
                   <Route path="settings" element={<Settings />} />
                 </Route>
               </Route>

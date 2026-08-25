@@ -1,22 +1,22 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\DeliveryRiderController;
-use App\Http\Controllers\PaymentController; 
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\DeliveryOrderController;
-use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\DeliveryNotificationController;
+use App\Http\Controllers\DeliveryOrderController;
+use App\Http\Controllers\DeliveryRiderController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RefundController;
+use App\Http\Controllers\ReportController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 // Coupon Routes
 Route::get('/coupons', [CouponController::class, 'getUserCoupons']);
@@ -54,6 +54,12 @@ Route::get('/admin/orders', [OrderController::class, 'getAllOrdersForAdmin']);
 Route::patch('/admin/orders/{id}/status', [OrderController::class, 'updateOrderStatus']);
 Route::patch('/admin/orders/{id}/delivery-rider', [OrderController::class, 'assignDeliveryRider']);
 
+// Customer cancellation requests and admin refund review
+Route::post('/refunds', [RefundController::class, 'store']);
+Route::get('/refunds/{orderId}', [RefundController::class, 'showForCustomer']);
+Route::get('/admin/refunds', [RefundController::class, 'index']);
+Route::patch('/admin/refunds/{refund}/status', [RefundController::class, 'updateStatus']);
+
 // Delivery rider order APIs
 Route::get('/delivery/dashboard', [DeliveryOrderController::class, 'dashboard']);
 Route::get('/delivery/orders', [DeliveryOrderController::class, 'assignedOrders']);
@@ -79,8 +85,8 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/products', [ProductController::class, 'store']);
 Route::get('/products', [ProductController::class, 'index']);
 Route::post('/products/{id}/buy', [ProductController::class, 'decrementStock']);
-Route::match(['post', 'put'], '/products/{id}', [ProductController::class, 'update']); 
-Route::delete('/products/{id}', [ProductController::class, 'destroy']); 
+Route::match(['post', 'put'], '/products/{id}', [ProductController::class, 'update']);
+Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
 // Authenticated User Info
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

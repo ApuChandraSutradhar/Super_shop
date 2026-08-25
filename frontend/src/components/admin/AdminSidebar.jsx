@@ -9,6 +9,7 @@ import {
   FiTruck, 
   FiCreditCard,
   FiBarChart2,
+  FiRotateCcw,
   FiHome,
   FiSettings,
   FiLogOut
@@ -40,6 +41,7 @@ export default function AdminSidebar() {
     { name: "Delivery Riders", path: "/admin/delivery-riders", icon: <FiTruck size={18} /> },
     { name: "Payments", path: "/admin/payments", icon: <FiCreditCard size={18} /> },
     { name: "Reports", path: "/admin/reports", icon: <FiBarChart2 size={18} /> },
+    { name: "Refunds", path: "/admin/refunds", icon: <FiRotateCcw size={18} /> },
     { name: "Settings", path: "/admin/settings", icon: <FiSettings size={18} /> },
   ];
 

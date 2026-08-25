@@ -59,7 +59,9 @@ export default function Checkout() {
 
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [trxId, setTrxId] = useState("");
+  const [senderNumber, setSenderNumber] = useState("");
   const [orderId, setOrderId] = useState("");
+  const [orderDatabaseId, setOrderDatabaseId] = useState(null);
   const [finalGrandTotal, setFinalGrandTotal] = useState(0);
   const [confirmedItems, setConfirmedItems] = useState([]);
 
@@ -93,7 +95,7 @@ export default function Checkout() {
     }
   };
 
-  const handleConfirmOrder = async (forcedTrxId = trxId) => {
+  const handleConfirmOrder = async (forcedTrxId = trxId, forcedSenderNumber = senderNumber) => {
     if (cartItems.length === 0) {
       alert("Your cart is empty!");
       return;
@@ -140,6 +142,7 @@ export default function Checkout() {
       payable_amount: currentGrandTotal,
       payment_method: normalizedPaymentMethod,
       transaction_id: finalTransactionId,
+      sender_number: normalizedPaymentMethod !== "COD" ? forcedSenderNumber || null : null,
       coupon_code: appliedCoupon ? couponCode : "AUTO2000_OFFER",
       is_used: appliedCoupon ? 1 : 0,
       delivery_name: formData.fullName,
@@ -153,12 +156,12 @@ export default function Checkout() {
     try {
       const response = await axios.post("http://127.0.0.1:8000/api/place-order", orderPayload);
 
-      let generatedOrderId = "";
-      if (response.data && response.data.success) {
-        generatedOrderId = response.data.order_number || response.data.order_id;
-      } else {
-        generatedOrderId = "FM-" + Math.floor(100000 + Math.random() * 900000);
+      if (!response.data?.success || !response.data?.order_id) {
+        throw new Error("The order API did not confirm database persistence.");
       }
+
+      const generatedOrderId = response.data.order_number || response.data.order_id;
+      setOrderDatabaseId(response.data.order_id);
 
       setOrderId(generatedOrderId);
       setConfirmedItems(orderedItems);
@@ -183,29 +186,8 @@ export default function Checkout() {
       setStep(3);
 
     } catch (error) {
-      console.error("API Order placement failed, falling back local order...", error);
-
-      const fallbackOrderId = "FM-" + Math.floor(100000 + Math.random() * 900000);
-      setOrderId(fallbackOrderId);
-      setConfirmedItems(orderedItems);
-
-      const newOrder = {
-        id: fallbackOrderId,
-        customer_id: userId,
-        date: new Date().toLocaleDateString("en-GB"),
-        items: orderedItems.map((item) => ({ name: item.product_name, quantity: item.quantity, price: item.unit_price })),
-        totalAmount: currentGrandTotal.toFixed(2),
-        discountAmount: currentDiscount.toFixed(2),
-        status: "Pending",
-        address: shippingAddress,
-        paymentMethod: paymentMethod,
-      };
-
-      const existingOrders = JSON.parse(localStorage.getItem("user_orders")) || [];
-      localStorage.setItem("user_orders", JSON.stringify([newOrder, ...existingOrders]));
-
-      forceClearCart();
-      setStep(3);
+      console.error("Order placement failed:", error);
+      alert(error.response?.data?.message || error.response?.data?.error || "We could not save your order. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -237,6 +219,8 @@ export default function Checkout() {
         {step === 3 ? (
           <OrderConfirmation
             orderId={orderId}
+            orderDatabaseId={orderDatabaseId}
+            customerId={userId}
             formData={formData}
             paymentMethod={paymentMethod}
             grandTotal={finalGrandTotal}
@@ -261,6 +245,7 @@ export default function Checkout() {
                   setPaymentMethod={setPaymentMethod}
                   trxId={trxId}
                   setTrxId={setTrxId}
+                  setSenderNumber={setSenderNumber}
                   grandTotal={grandTotal}
                   loading={loading}
                   onBack={() => setStep(1)}

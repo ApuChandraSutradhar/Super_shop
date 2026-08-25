@@ -64,4 +64,9 @@ class Order extends Model
     {
         return $this->hasMany(Feedback::class, 'order_id', 'order_id');
     }
+
+    public function refund()
+    {
+        return $this->hasOne(Refund::class, 'order_id', 'order_id');
+    }
 }

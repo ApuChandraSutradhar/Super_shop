@@ -60,4 +60,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Feedback::class, 'customer_id', 'id');
     }
+
+    public function refunds()
+    {
+        return $this->hasMany(Refund::class, 'customer_id', 'id');
+    }
 }
