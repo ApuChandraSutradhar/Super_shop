@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminNotification;
 use App\Models\Delivery;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\User;
-use App\Models\AdminNotification;
 use Illuminate\Http\Request;
 
 class DeliveryOrderController extends Controller
@@ -14,6 +15,7 @@ class DeliveryOrderController extends Controller
     {
         $data = $request->validate(['delivery_person_id' => ['required', 'integer', 'exists:users,id']]);
         User::whereKey($data['delivery_person_id'])->where('role', 'delivery')->where('is_approved', 1)->firstOrFail();
+
         return (int) $data['delivery_person_id'];
     }
 
@@ -74,22 +76,30 @@ class DeliveryOrderController extends Controller
         AdminNotification::record(
             'delivery_status',
             'Delivery status updated',
-            "{$rider->name} marked order {$order->order_number} as " . str_replace('_', ' ', $data['order_status']) . '.',
+            "{$rider->name} marked order {$order->order_number} as ".str_replace('_', ' ', $data['order_status']).'.',
             '/admin/orders',
             ['order_id' => $order->order_id, 'status' => $data['order_status']]
         );
+
+        $cashCollected = 0;
+        if ($data['order_status'] === 'delivered' && $order->payment?->payment_method === 'COD') {
+            $cashCollected = $data['cash_collected'] ?? (float) Payment::where('order_id', $order->order_id)->value('amount');
+        }
 
         $delivery = Delivery::updateOrCreate(
             ['order_id' => $order->order_id],
             [
                 'delivery_person_id' => $data['delivery_person_id'],
                 'otp_code' => $data['order_status'] === 'delivered' ? (string) random_int(100000, 999999) : null,
-                'cash_collected' => $data['order_status'] === 'delivered' ? ($data['cash_collected'] ?? 0) : 0,
+                'cash_collected' => $cashCollected,
                 'delivery_status' => match ($data['order_status']) {
                     'delivered' => 'delivered',
                     'shipping' => 'out_for_delivery',
                     default => 'assigned',
                 },
+                'settlement_status' => 'pending',
+                'collected_at' => $data['order_status'] === 'delivered' ? now() : null,
+                'settled_at' => null,
             ]
         );
 

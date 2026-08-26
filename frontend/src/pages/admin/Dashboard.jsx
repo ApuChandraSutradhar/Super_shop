@@ -16,45 +16,22 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const emptyStats = { totalRevenue: 0, totalOrders: 0, activeCustomers: 0, productsListed: 0, revenueGrowth: 0, ordersGrowth: 0 };
+const asArray = (value) => Array.isArray(value) ? value : [];
+const numberOrZero = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
+
 export default function Dashboard() {
   // 1. Stat Box Data
-  const [stats, setStats] = useState({
-    totalRevenue: "2,85,420",
-    totalOrders: "1,248",
-    activeCustomers: "824",
-    productsListed: "74",
-  });
+  const [stats, setStats] = useState(emptyStats);
 
   // 2. Sales & Revenue Area Chart Data
-  const [salesRevenueData, setSalesRevenueData] = useState([
-    { month: "Feb", revenue: 42000, sales: 38000 },
-    { month: "Mar", revenue: 58000, sales: 52000 },
-    { month: "Apr", revenue: 48000, sales: 43000 },
-    { month: "May", revenue: 63000, sales: 57000 },
-    { month: "Jun", revenue: 72000, sales: 65000 },
-    { month: "Jul", revenue: 84000, sales: 78000 },
-    { month: "Aug", revenue: 91000, sales: 85000 },
-  ]);
+  const [salesRevenueData, setSalesRevenueData] = useState([]);
 
   // 3. Category Sales Donut Chart Data
-  const categoryData = [
-    { name: "Vegetables", value: 28, color: "#10b981" },
-    { name: "Fruits", value: 22, color: "#f97316" },
-    { name: "Dairy", value: 15, color: "#3b82f6" },
-    { name: "Meat", value: 18, color: "#ef4444" },
-    { name: "Others", value: 17, color: "#a855f7" },
-  ];
+  const [categoryData, setCategoryData] = useState([]);
 
   // 4. Monthly Orders Bar Chart Data
-  const [monthlyOrdersData, setMonthlyOrdersData] = useState([
-    { month: "Feb", orders: 280 },
-    { month: "Mar", orders: 480 },
-    { month: "Apr", orders: 360 },
-    { month: "May", orders: 520 },
-    { month: "Jun", orders: 600 },
-    { month: "Jul", orders: 750 },
-    { month: "Aug", orders: 820 },
-  ]);
+  const [monthlyOrdersData, setMonthlyOrdersData] = useState([]);
 
   // 5. Recent Orders List
   const [recentOrders, setRecentOrders] = useState([
@@ -71,19 +48,36 @@ export default function Dashboard() {
     { name: "Hilsa Fish", weight: "1 kg", stockLeft: "10 left" },
     { name: "Catla Fish Whole", weight: "1 kg", stockLeft: "18 left" },
   ]);
+  const [pendingCash, setPendingCash] = useState({ total: 0, riders: [] });
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   // Backend API Cconnected useEffect
   useEffect(() => {
-    // const fetchDashboardData = async () => {
-    //   try {
-    //     const res = await axios.get("http://127.0.0.1:8000/api/admin/dashboard-stats");
-    //     // Update states here
-    //   } catch (err) {
-    //     console.error("Dashboard API Error:", err);
-    //   }
-    // };
-    // fetchDashboardData();
+    const fetchDashboardData = async () => {
+      try {
+        const { data } = await axios.get("http://127.0.0.1:8000/api/admin/dashboard");
+        const dashboard = data?.data ?? {};
+        const apiStats = dashboard.stats ?? {};
+        setStats({ totalRevenue: numberOrZero(apiStats.total_revenue), totalOrders: numberOrZero(apiStats.total_orders), activeCustomers: numberOrZero(apiStats.active_customers), productsListed: numberOrZero(apiStats.products_listed), revenueGrowth: numberOrZero(apiStats.revenue_growth), ordersGrowth: numberOrZero(apiStats.orders_growth) });
+        setSalesRevenueData(asArray(dashboard.sales_revenue).map((item) => ({ month: item?.month || "", revenue: numberOrZero(item?.revenue), sales: numberOrZero(item?.sales) })));
+        setMonthlyOrdersData(asArray(dashboard.monthly_orders).map((item) => ({ month: item?.month || "", orders: numberOrZero(item?.orders) })));
+        setCategoryData(asArray(dashboard.category_sales).map((item, index) => ({ name: item?.name || "Others", value: numberOrZero(item?.value), amount: numberOrZero(item?.amount), color: item?.color || ["#10b981", "#f97316", "#3b82f6"][index % 3] })));
+        setRecentOrders(asArray(dashboard.recent_orders).map((order) => ({ id: order?.order_number || `#${order?.order_id ?? "-"}`, date: order?.created_at || "—", status: order?.order_status || "Unknown", price: numberOrZero(order?.payable_amount) })));
+        setLowStockProducts(asArray(dashboard.low_stock_products).map((product) => ({ name: product?.name || "Unnamed product", weight: "", stockLeft: `${numberOrZero(product?.stock)} left` })));
+        const cash = dashboard.pending_cod_cash ?? {};
+        setPendingCash({ total: numberOrZero(cash.total), riders: asArray(cash.riders) });
+        setLoadError("");
+      } catch (err) {
+        console.error("Dashboard API Error:", err);
+        setLoadError("Dashboard data is temporarily unavailable. Showing default values.");
+        setStats(emptyStats); setSalesRevenueData([]); setMonthlyOrdersData([]); setCategoryData([]); setRecentOrders([]); setLowStockProducts([]); setPendingCash({ total: 0, riders: [] });
+      } finally { setLoading(false); }
+    };
+    fetchDashboardData();
   }, []);
+
+  const money = (value) => `৳${Number(value || 0).toLocaleString()}`;
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -97,6 +91,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {loadError && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">{loadError}</div>}
+      {loading && <p className="text-sm text-gray-400">Loading dashboard data…</p>}
       {/* 📊 Top 4 Summary Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
@@ -104,7 +100,8 @@ export default function Dashboard() {
           <div className="mt-4">
             <h2 className="text-2xl lg:text-3xl font-extrabold text-gray-800">৳{stats.totalRevenue}</h2>
             <p className="text-xs font-semibold text-gray-400 mt-1">Total Revenue</p>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 mt-2">
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 mt-2"><FiTrendingUp /> {stats.revenueGrowth >= 0 ? "↑" : "↓"} {Math.abs(stats.revenueGrowth)}% this month</span>
+            <span className="hidden">
               <FiTrendingUp /> ↑ 18% this month
             </span>
           </div>
@@ -115,7 +112,8 @@ export default function Dashboard() {
           <div className="mt-4">
             <h2 className="text-2xl lg:text-3xl font-extrabold text-gray-800">{stats.totalOrders}</h2>
             <p className="text-xs font-semibold text-gray-400 mt-1">Total Orders</p>
-            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 mt-2">
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 mt-2"><FiTrendingUp /> {stats.ordersGrowth >= 0 ? "↑" : "↓"} {Math.abs(stats.ordersGrowth)}% this week</span>
+            <span className="hidden">
               <FiTrendingUp /> ↑ 12% this week
             </span>
           </div>
@@ -142,6 +140,16 @@ export default function Dashboard() {
       </div>
 
       {/* 📈 Charts Row: Sales & Revenue Area Chart + Category Sales Pie Chart */}
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <div><h3 className="text-lg font-bold text-gray-800">Pending COD Cash Collection</h3><p className="text-xs text-gray-400 mt-1">Cash collected by riders awaiting settlement</p></div>
+          <span className="text-xl font-extrabold text-emerald-600">{money(pendingCash.total)}</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {asArray(pendingCash.riders).length ? asArray(pendingCash.riders).map((rider, index) => <div key={rider?.rider_name || index} className="rounded-xl bg-emerald-50 px-4 py-3"><p className="text-sm font-bold text-gray-800">{rider?.rider_name || "Unassigned rider"}</p><p className="text-sm font-semibold text-emerald-600">{money(rider?.amount)}</p></div>) : <p className="text-sm text-gray-400">No pending COD cash collections.</p>}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Sales & Revenue Chart */}

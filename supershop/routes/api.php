@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CashCollectionController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DeliveryNotificationController;
@@ -34,6 +36,9 @@ Route::patch('/admin/delivery-riders/{id}/status', [DeliveryRiderController::cla
 
 // Admin Payments Route
 Route::get('/payments', [PaymentController::class, 'index']);
+Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+Route::get('/admin/cash-collections', [CashCollectionController::class, 'index']);
+Route::patch('/admin/cash-collections/{delivery}/settle', [CashCollectionController::class, 'settle']);
 
 // Admin Reports Route
 Route::get('/admin/reports', [ReportController::class, 'getReports']);
