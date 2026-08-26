@@ -31,6 +31,7 @@ export default function AdminLogin() {
 
       if ((res.data.success || user) && userRole === "admin") {
         localStorage.setItem("adminUser", JSON.stringify(user));
+        if (res.data?.token) localStorage.setItem("token", res.data.token);
         
         // Use window.location.replace to wipe browser history stack
         window.location.replace("/admin/dashboard");

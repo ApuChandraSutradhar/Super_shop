@@ -67,11 +67,13 @@ Route::patch('/admin/refunds/{refund}/status', [RefundController::class, 'update
 
 // Delivery rider order APIs
 Route::get('/delivery/dashboard', [DeliveryOrderController::class, 'dashboard']);
+Route::get('/rider/dashboard', [DeliveryOrderController::class, 'dashboard']);
 Route::get('/delivery/orders', [DeliveryOrderController::class, 'assignedOrders']);
 Route::patch('/delivery/orders/{id}/status', [DeliveryOrderController::class, 'updateStatus']);
 
 // Customer feedback API
 Route::post('/feedback', [FeedbackController::class, 'store']);
+Route::middleware(['auth:sanctum', 'admin'])->get('/admin/feedbacks', [FeedbackController::class, 'index']);
 
 // Admin Customers APIs
 Route::get('/admin/customers', [CustomerController::class, 'index']);

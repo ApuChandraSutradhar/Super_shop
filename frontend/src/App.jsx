@@ -43,6 +43,7 @@ import Reports from "./pages/admin/Reports";
 import Settings from "./pages/admin/Settings";
 import Refunds from "./pages/admin/Refunds";
 import CashCollection from "./pages/admin/CashCollection";
+import ViewFeedback from "./pages/admin/ViewFeedback";
 
 // Protected Route Import
 import AdminProtectedRoute from "./routes/AdminProtectedRoute";
@@ -166,6 +167,7 @@ export default function App() {
                   <Route path="reports" element={<Reports />} />
                   <Route path="refunds" element={<Refunds />} />
                   <Route path="cash-collection" element={<CashCollection />} />
+                  <Route path="feedback" element={<ViewFeedback />} />
                   <Route path="settings" element={<Settings />} />
                 </Route>
               </Route>

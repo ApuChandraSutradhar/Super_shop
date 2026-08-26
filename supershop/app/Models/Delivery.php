@@ -13,12 +13,12 @@ class Delivery extends Model
 
     protected $fillable = [
         'order_id', 'delivery_person_id', 'otp_code', 'cash_collected', 'delivery_status',
-        'settlement_status', 'collected_at', 'settled_at',
+        'settlement_status', 'collected_at', 'settled_at', 'assigned_at',
     ];
 
     protected function casts(): array
     {
-        return ['cash_collected' => 'decimal:2', 'collected_at' => 'datetime', 'settled_at' => 'datetime'];
+        return ['cash_collected' => 'decimal:2', 'assigned_at' => 'datetime', 'collected_at' => 'datetime', 'settled_at' => 'datetime'];
     }
 
     public function order()

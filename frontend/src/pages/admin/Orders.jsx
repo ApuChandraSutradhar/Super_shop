@@ -80,7 +80,7 @@ export default function Orders() {
         {loading ? <p className="text-center text-gray-500 py-6">Loading orders...</p> : (
           <table className="w-full min-w-[1300px] text-left border-collapse">
             <thead><tr className="border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase">
-              <th className="pb-4">Order ID</th><th className="pb-4">Customer</th><th className="pb-4">Date</th><th className="pb-4">Customer Address</th><th className="pb-4">Ordered Items</th><th className="pb-4">Total</th><th className="pb-4">Payment</th><th className="pb-4">Assigned Delivery Rider</th><th className="pb-4 text-center">Status</th>
+              <th className="pb-4">Order ID</th><th className="pb-4">Customer</th><th className="pb-4">Date</th><th className="pb-4">Customer Address</th><th className="pb-4">Ordered Products and Quantity</th><th className="pb-4">Total</th><th className="pb-4">Payment</th><th className="pb-4">Assigned Delivery Rider</th><th className="pb-4 text-center">Status</th>
             </tr></thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {filteredOrders.length ? filteredOrders.map((order) => {
@@ -91,7 +91,11 @@ export default function Orders() {
                   <td className="py-4 font-semibold text-gray-800">{order.delivery_name || order.customer?.name || "Guest Customer"}<span className="block text-xs font-normal text-gray-400">{order.delivery_phone || order.customer?.phone || ""}</span></td>
                   <td className="py-4 text-xs text-gray-500">{order.created_at ? order.created_at.slice(0, 10) : "N/A"}</td>
                   <td className="py-4 text-xs text-gray-600 max-w-48 whitespace-normal">{order.shipping_address || "Not provided"}{order.order_notes && <span className="block mt-1 text-gray-400">Note: {order.order_notes}</span>}</td>
-                  <td className="py-4 text-xs text-gray-600 max-w-56 whitespace-normal">{items.length ? items.map((item, index) => <span key={item.order_item_id || item.product_id || index} className="block">{item.product?.name || item.name || "Product"} x{item.quantity}</span>) : "No item details"}</td>
+                  <td className="py-4 max-w-64 whitespace-normal">{items.length ? <div className="space-y-2">{items.map((item, index) => {
+                    const image = item.image_url || item.image || item.product?.image_url || item.product?.image;
+                    const name = item.product?.name || item.name || "Product";
+                    return <div key={item.order_item_id || item.product_id || index} className="flex items-center gap-2"><div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-gray-100">{image ? <><img src={image} alt="" className="h-full w-full object-cover" onError={(event) => { event.currentTarget.style.display = "none"; event.currentTarget.nextElementSibling.style.display = "flex"; }} /><span className="hidden h-full w-full items-center justify-center text-[10px] font-bold text-gray-400">N/A</span></> : <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-gray-400">N/A</span>}</div><span className="text-xs font-medium text-gray-700">{name} <span className="font-bold text-emerald-700">×{item.quantity || 0}</span></span></div>;
+                  })}</div> : <span className="text-xs text-gray-500">No item details</span>}</td>
                   <td className="py-4 font-bold text-gray-900">৳{order.payable_amount || order.total_amount || 0}</td>
                   <td className="py-4"><span className="px-2.5 py-1 rounded-md bg-gray-100 text-xs font-semibold text-gray-700">{order.payment?.payment_method || "COD"}</span></td>
                   <td className="py-4"><select value={order.delivery_person_id || ""} onChange={(event) => handleRiderAssignment(orderId, event.target.value)} className="max-w-40 bg-gray-50 border border-gray-200 text-xs px-2 py-1.5 rounded-lg outline-none"><option value="">Unassigned</option>{riders.map((rider) => <option key={rider.id} value={rider.id}>{rider.name} ({rider.phone})</option>)}</select></td>

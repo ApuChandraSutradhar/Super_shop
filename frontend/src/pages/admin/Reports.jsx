@@ -1,110 +1,80 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FiTrendingUp, FiShoppingBag, FiUsers, FiDollarSign } from "react-icons/fi";
+import { FiDollarSign, FiShoppingBag, FiTrendingUp, FiUsers } from "react-icons/fi";
+
+const emptyReport = {
+  metrics: { total_revenue: 0, total_completed_orders: 0, active_customers: 0 },
+  ai_predictions: [],
+};
+const asArray = (value) => Array.isArray(value) ? value : [];
+const numeric = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
+const money = (value) => `৳${numeric(value).toLocaleString()}`;
 
 export default function Reports() {
-  const [reportData, setReportData] = useState({
-    summary: {
-      total_revenue: 125400,
-      total_orders: 342,
-      active_customers: 128,
-    },
-    predictions: [
-      { name: "Fresh Red Apples", growth: "+35%", reason: "High demand season" },
-      { name: "Atlantic Salmon", growth: "+18%", reason: "Weekend BBQ season trend" },
-      { name: "Wireless Earbuds", growth: "+25%", reason: "New model launch nearby" },
-    ],
-  });
+  const [reportData, setReportData] = useState(emptyReport);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
-
     const fetchReports = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/admin/reports", {
-          signal: controller.signal,
+        const { data } = await axios.get("http://127.0.0.1:8000/api/admin/reports", { signal: controller.signal });
+        const report = data?.data ?? emptyReport;
+        const metrics = report.metrics ?? {};
+        setReportData({
+          metrics: {
+            total_revenue: numeric(metrics.total_revenue),
+            total_completed_orders: numeric(metrics.total_completed_orders),
+            active_customers: numeric(metrics.active_customers),
+          },
+          ai_predictions: asArray(report.ai_predictions).map((item) => ({
+            name: item?.name || "Unnamed product",
+            growth_percentage: item?.growth_percentage || "+0.0%",
+            insight_reason: item?.insight_reason || "Stable demand monitoring",
+            predicted_next_week_demand: numeric(item?.predicted_next_week_demand),
+            predicted_next_month_demand: numeric(item?.predicted_next_month_demand),
+          })),
         });
-        if (response.data && response.data.summary) {
-          setReportData(response.data);
-        }
-      } catch (error) {
-        if (!axios.isCancel(error)) {
-          console.warn("API request failed, displaying default report data.");
+        setError(data?.success === false ? "Some report data is unavailable; zero-value fallbacks are shown." : "");
+      } catch (requestError) {
+        if (!axios.isCancel(requestError)) {
+          setReportData(emptyReport);
+          setError("Reports are temporarily unavailable. Showing default values.");
         }
       } finally {
         setLoading(false);
       }
     };
-
     fetchReports();
-
-    return () => {
-      controller.abort();
-    };
+    return () => controller.abort();
   }, []);
 
-  if (loading) {
-    return <div className="p-8 text-gray-500">Loading reports...</div>;
-  }
+  const cards = [
+    ["Total Revenue", money(reportData.metrics.total_revenue), FiDollarSign, "bg-emerald-50 text-emerald-600"],
+    ["Total Completed Orders", reportData.metrics.total_completed_orders, FiShoppingBag, "bg-blue-50 text-blue-600"],
+    ["Active Customers", reportData.metrics.active_customers, FiUsers, "bg-purple-50 text-purple-600"],
+  ];
 
   return (
-    <div className="p-8 bg-gray-50/50 min-h-screen">
+    <div className="min-h-screen bg-gray-50/50 p-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Sales & AI Analytics Reports</h1>
-        <p className="text-gray-500 text-sm">Real-time store performance and AI-driven demand prediction</p>
+        <p className="text-sm text-gray-500">Paid and delivered order performance with 30-day demand forecasts</p>
+      </div>
+      {loading && <div className="mb-6 flex items-center gap-2 text-sm text-gray-500"><span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" /> Loading live reports...</div>}
+      {error && <div role="alert" className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">{error}</div>}
+
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+        {cards.map(([label, value, Icon, color]) => <div key={label} className="flex items-center gap-4 rounded-3xl border border-gray-100 bg-white p-6 shadow-sm"><div className={`rounded-2xl p-4 ${color}`}><Icon size={24} /></div><div><p className="text-xs font-semibold uppercase text-gray-400">{label}</p><h3 className="text-2xl font-bold text-gray-800">{value}</h3></div></div>)}
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
-            <FiDollarSign size={24} />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase">Total Revenue</p>
-            <h3 className="text-2xl font-bold text-gray-800">৳{reportData.summary.total_revenue}</h3>
-          </div>
+      <section className="w-full rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex items-center gap-2"><FiTrendingUp className="text-indigo-600" size={20} /><h2 className="text-lg font-bold text-gray-800">AI Product Predictions</h2></div>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {reportData.ai_predictions.length ? reportData.ai_predictions.map((item, index) => <article key={`${item.name}-${index}`} className="rounded-2xl border border-gray-100 bg-gray-50/60 p-5"><h3 className="mb-1 font-bold text-gray-800">{item.name}</h3><span className="mb-2 block text-2xl font-extrabold text-emerald-500">{item.growth_percentage}</span><p className="text-xs font-medium text-gray-600">{item.insight_reason}</p><div className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800"><strong className="block">Suggested restock</strong><span className="block">Order {item.predicted_next_week_demand} units for the next 7 days.</span><span className="block">Plan {item.predicted_next_month_demand} units for the next 30 days.</span></div></article>) : <p className="text-sm text-gray-400">No delivered product history is available yet.</p>}
         </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-            <FiShoppingBag size={24} />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase">Total Completed Orders</p>
-            <h3 className="text-2xl font-bold text-gray-800">{reportData.summary.total_orders}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="p-4 bg-purple-50 text-purple-600 rounded-2xl">
-            <FiUsers size={24} />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase">Active Customers</p>
-            <h3 className="text-2xl font-bold text-gray-800">{reportData.summary.active_customers}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* AI Predictions */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-2 mb-6">
-          <FiTrendingUp className="text-indigo-600" size={20} />
-          <h2 className="text-lg font-bold text-gray-800">AI Product Prediction</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {reportData.predictions.map((item, index) => (
-            <div key={index} className="p-5 bg-gray-50/60 rounded-2xl border border-gray-100">
-              <h4 className="font-bold text-gray-800 mb-1">{item.name}</h4>
-              <span className="text-2xl font-extrabold text-emerald-500 block mb-2">{item.growth}</span>
-              <p className="text-xs text-gray-400">{item.reason}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

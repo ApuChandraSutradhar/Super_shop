@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminNotification;
+use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -199,7 +200,7 @@ class OrderController extends Controller
 
     public function getAllOrdersForAdmin()
     {
-        $orders = Order::with(['customer', 'orderItems.product', 'payment', 'deliveryPerson'])
+        $orders = Order::with(['customer', 'orderItems.product:id,name,image', 'payment', 'deliveryPerson'])
             ->orderBy('order_id', 'desc')
             ->get();
 
@@ -263,6 +264,10 @@ class OrderController extends Controller
         $order->save();
 
         if ($order->delivery_person_id && (int) $previousRiderId !== (int) $order->delivery_person_id) {
+            Delivery::updateOrCreate(
+                ['order_id' => $order->order_id],
+                ['delivery_person_id' => $order->delivery_person_id, 'delivery_status' => 'assigned', 'assigned_at' => now()]
+            );
             AdminNotification::record(
                 'order_assigned',
                 'New order assigned',

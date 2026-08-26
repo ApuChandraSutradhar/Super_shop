@@ -101,6 +101,8 @@ export default function DeliveryOrders({ completed = false }) {
       });
 
       const updatedOrder = response.data?.order || { order_status: orderStatus };
+      // The API returns rider-scoped metrics, so the overview can update without waiting for polling.
+      window.dispatchEvent(new CustomEvent("delivery-dashboard-updated", { detail: response.data?.stats }));
       setOrders((currentOrders) => currentOrders.map((currentOrder) => (
         currentOrder.order_id === order.order_id
           ? { ...currentOrder, ...updatedOrder, delivery: updatedOrder.delivery || currentOrder.delivery }

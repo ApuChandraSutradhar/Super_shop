@@ -32,10 +32,13 @@ class AuthController extends Controller
             ], 403);
         }
 
+        $token = $user->createToken('supershop-web')->plainTextToken;
+
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'user'    => $user
+            'user'    => $user,
+            'token' => $token,
         ]);
     }
 

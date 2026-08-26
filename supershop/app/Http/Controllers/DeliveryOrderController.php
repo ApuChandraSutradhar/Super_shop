@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DeliveryOrderController extends Controller
 {
@@ -22,23 +24,8 @@ class DeliveryOrderController extends Controller
     public function dashboard(Request $request)
     {
         $riderId = $this->validateRider($request);
-        $today = now()->toDateString();
-        $todayOrders = Order::where('delivery_person_id', $riderId)->whereDate('created_at', $today);
 
-        $completed = (clone $todayOrders)->where(function ($query) {
-            $query->where('order_status', 'delivered')->orWhereHas('delivery', fn ($delivery) => $delivery->where('delivery_status', 'delivered'));
-        });
-
-        $cashCollected = (clone $completed)
-            ->whereHas('payment', fn ($payment) => $payment->where('payment_method', 'COD'))
-            ->sum('total_amount');
-
-        return response()->json(['success' => true, 'stats' => [
-            'today_deliveries' => (clone $todayOrders)->count(),
-            'completed' => $completed->count(),
-            'pending' => (clone $todayOrders)->whereIn('order_status', ['pending', 'confirmed', 'processing', 'packing', 'shipping', 'shipped'])->count(),
-            'cash_collected' => (float) $cashCollected,
-        ]]);
+        return response()->json(['success' => true, 'stats' => $this->dashboardStats($riderId)]);
     }
 
     public function assignedOrders(Request $request)
@@ -103,6 +90,37 @@ class DeliveryOrderController extends Controller
             ]
         );
 
-        return response()->json(['success' => true, 'order' => $order->load('delivery'), 'delivery' => $delivery]);
+        return response()->json([
+            'success' => true,
+            'order' => $order->load('delivery'),
+            'delivery' => $delivery,
+            // Lets the delivery UI refresh every overview card immediately after a status update.
+            'stats' => $this->dashboardStats((int) $data['delivery_person_id']),
+        ]);
+    }
+
+    /** @return array{today_deliveries: int, completed: int, pending: int, cash_collected: float} */
+    private function dashboardStats(int $riderId): array
+    {
+        $assignedOrders = Order::query()->where('orders.delivery_person_id', $riderId);
+        $today = now()->toDateString();
+        $assignmentDate = Schema::hasColumn('deliveries', 'assigned_at') ? 'deliveries.assigned_at' : 'deliveries.created_at';
+        $todayDeliveries = (clone $assignedOrders)
+            ->leftJoin('deliveries', 'deliveries.order_id', '=', 'orders.order_id')
+            ->where(function ($query) use ($today, $assignmentDate): void {
+                // New assignments have a delivery record; legacy records fall back to order creation date.
+                $query->whereDate($assignmentDate, $today)
+                    ->orWhere(fn ($legacy) => $legacy->whereNull('deliveries.delivery_id')->whereDate('orders.created_at', $today));
+            });
+        $completed = (clone $assignedOrders)->whereRaw('LOWER(order_status) = ?', ['delivered']);
+
+        return [
+            'today_deliveries' => (int) $todayDeliveries->count('orders.order_id'),
+            'completed' => (int) $completed->count(),
+            'pending' => (int) (clone $assignedOrders)->whereIn(DB::raw('LOWER(order_status)'), ['pending', 'confirmed', 'processing', 'packing', 'shipping', 'shipped'])->count(),
+            'cash_collected' => (float) (clone $completed)
+                ->whereHas('payment', fn ($payment) => $payment->whereRaw('UPPER(payment_method) = ?', ['COD']))
+                ->sum('total_amount'),
+        ];
     }
 }
