@@ -7,65 +7,94 @@ use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
-test('the assistant sends live catalog context to Gemini and returns its reply', function () {
+test('the assistant gives a complete database-backed product answer without calling Gemini', function () {
     config(['services.gemini.key' => 'test-key']);
-
     Product::query()->create([
-        'name' => 'Fresh Apples',
-        'category' => 'Fruit',
-        'price' => 250,
-        'stock' => 12,
-        'discount' => 10,
-        'description' => 'Crisp apples',
+        'name' => 'Fresh Red Apple', 'category' => 'Fruit', 'price' => 250,
+        'stock' => 12, 'discount' => 10, 'description' => 'Crisp, sweet red apples.',
     ]);
 
-    Http::fake([
-        'generativelanguage.googleapis.com/*' => Http::response([
-            'candidates' => [[
-                'content' => ['parts' => [['text' => 'Fresh Apples are in stock.']]],
-            ]],
-        ]),
-    ]);
+    Http::fake();
 
-    $response = $this->postJson('/api/chat/assistant', ['message' => 'Do you have apples?']);
-
-    $response->assertOk()->assertJson(['reply' => 'Fresh Apples are in stock.']);
-
-    Http::assertSent(function (HttpRequest $request): bool {
-        return str_contains($request->url(), 'models/gemini-3.6-flash:generateContent')
-            && str_contains($request->body(), 'Fresh Apples')
-            && str_contains($request->body(), 'User Question: Do you have apples?')
-            && ! str_contains($request->body(), 'systemInstruction');
-    });
-});
-
-test('the assistant reports a missing Gemini API key without a service unavailable response', function () {
-    putenv('GEMINI_API_KEY=');
-    $_ENV['GEMINI_API_KEY'] = '';
-    $_SERVER['GEMINI_API_KEY'] = '';
-    config(['services.gemini.key' => null]);
-
-    $this->postJson('/api/chat/assistant', ['message' => 'Apple ar price koto?'])
+    $this->postJson('/api/chat/assistant', ['message' => 'Fresh Red Apple ar discount o price koto?'])
         ->assertOk()
-        ->assertJson(['reply' => 'Gemini API Key is missing in .env']);
+        ->assertJsonPath('reply', fn (string $reply): bool => str_contains($reply, '৳250.00')
+            && str_contains($reply, '10%') && str_contains($reply, '৳225.00') && str_contains($reply, '12 units'));
+
+    Http::assertNothingSent();
 });
 
-test('the assistant returns a useful response when Gemini rejects the request', function () {
+test('the assistant sends unknown conversational questions to Gemini with live store context', function () {
     config(['services.gemini.key' => 'test-key']);
-
-    Http::fake([
-        'generativelanguage.googleapis.com/*' => Http::response([
-            'error' => ['message' => 'The requested model was not found.'],
-        ], 404),
+    Product::query()->create([
+        'name' => 'Fresh Red Apple', 'category' => 'Fruit', 'price' => 250,
+        'stock' => 12, 'discount' => 10, 'description' => 'Crisp apples',
     ]);
+    Http::fake(['generativelanguage.googleapis.com/*' => Http::response([
+        'candidates' => [['content' => ['parts' => [['text' => 'That is a great question.']]]]],
+    ])]);
 
-    $this->postJson('/api/chat/assistant', ['message' => 'Apple ar price koto?'])
+    $this->postJson('/api/chat/assistant', ['message' => 'What makes a healthy breakfast?'])
+        ->assertOk()->assertJson(['reply' => 'That is a great question.']);
+
+    Http::assertSent(fn (HttpRequest $request): bool => str_contains($request->body(), 'Fresh Red Apple')
+        && str_contains($request->body(), 'inside Dhaka') && str_contains($request->body(), 'What makes a healthy breakfast?'));
+});
+
+test('the assistant gives delivery facts when Gemini is unavailable', function () {
+    config(['services.gemini.key' => 'test-key']);
+    Http::fake();
+
+    $this->postJson('/api/chat/assistant', ['message' => 'Delivery koto minute ar fee koto?'])
         ->assertOk()
-        ->assertJson(['reply' => 'Sorry, I am currently having trouble connecting to Gemini API.']);
+        ->assertJsonPath('reply', fn (string $reply): bool => str_contains($reply, 'fixed delivery')
+            && str_contains($reply, '৳60') && str_contains($reply, '৳120'));
+
+    Http::assertNothingSent();
+});
+
+test('the assistant gives a friendly local greeting', function () {
+    Http::fake();
+
+    $this->postJson('/api/chat/assistant', ['message' => 'Hello, how are you?'])
+        ->assertOk()
+        ->assertJsonPath('reply', fn (string $reply): bool => str_starts_with($reply, 'Hello!'));
+
+    Http::assertNothingSent();
+});
+
+test('the assistant answers Banglish how are you questions in Banglish', function () {
+    Http::fake();
+
+    $this->postJson('/api/chat/assistant', ['message' => 'Apni kamon achen?'])
+        ->assertOk()
+        ->assertJsonPath('reply', fn (string $reply): bool => str_contains($reply, 'Ami valo achi')
+            && str_contains($reply, 'Apni kamon achen?'));
+
+    Http::assertNothingSent();
+});
+
+test('the assistant welcomes a customer after they say thanks', function () {
+    Http::fake();
+
+    $this->postJson('/api/chat/assistant', ['message' => 'Thanks'])
+        ->assertOk()
+        ->assertJsonPath('reply', fn (string $reply): bool => str_contains($reply, 'most welcome')
+            && str_contains($reply, 'more products and offers'));
+
+    Http::assertNothingSent();
+});
+
+test('the assistant returns a useful safe reply when Gemini fails', function () {
+    config(['services.gemini.key' => 'test-key']);
+    Http::fake(['generativelanguage.googleapis.com/*' => Http::response(['error' => ['message' => 'Quota exceeded']], 429)]);
+
+    $this->postJson('/api/chat/assistant', ['message' => 'Tell me a joke'])
+        ->assertOk()
+        ->assertJsonPath('reply', fn (string $reply): bool => str_contains($reply, 'products, prices'));
 });
 
 test('the assistant rejects an empty message', function () {
     $this->postJson('/api/chat/assistant', ['message' => ''])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('message');
+        ->assertUnprocessable()->assertJsonValidationErrors('message');
 });
