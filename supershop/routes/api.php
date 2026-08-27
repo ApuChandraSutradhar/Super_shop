@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CashCollectionController;
+use App\Http\Controllers\ChatAssistantController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DeliveryNotificationController;
@@ -19,6 +20,8 @@ use App\Http\Controllers\RefundController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/chat/assistant', [ChatAssistantController::class, 'store'])->middleware('throttle:20,1');
 
 // Coupon Routes
 Route::get('/coupons', [CouponController::class, 'getUserCoupons']);

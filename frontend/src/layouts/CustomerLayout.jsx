@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer"; 
+import AIChatbot from "../components/AIChatbot";
 
 export default function CustomerLayout({ children }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,6 +25,7 @@ export default function CustomerLayout({ children }) {
         )}
       </main>
       <Footer />
+      <AIChatbot />
     </div>
   );
 }
