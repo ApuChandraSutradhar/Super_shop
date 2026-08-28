@@ -7,6 +7,7 @@ use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -110,6 +111,19 @@ class OrderController extends Controller
                 ]);
 
                 foreach ($validated['items'] as $item) {
+                    // Lock the product row so concurrent checkouts cannot oversell it.
+                    $product = Product::query()
+                        ->lockForUpdate()
+                        ->find($item['product_id']);
+
+                    if (! $product || $product->stock < $item['quantity']) {
+                        $productName = $product?->name ?? 'the selected product';
+
+                        throw new \DomainException("Stock not available for {$productName}");
+                    }
+
+                    $product->decrement('stock', $item['quantity']);
+
                     OrderItem::create([
                         'order_id' => $order->order_id,
                         'product_id' => $item['product_id'],
@@ -152,6 +166,11 @@ class OrderController extends Controller
                 'order_id' => $order->order_id,
             ], 201);
 
+        } catch (\DomainException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
         } catch (\Throwable $e) {
 
             return response()->json([

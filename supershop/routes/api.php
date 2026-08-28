@@ -13,6 +13,7 @@ use App\Http\Controllers\DeliveryNotificationController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\DeliveryRiderController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
@@ -22,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/chat/assistant', [ChatAssistantController::class, 'store'])->middleware('throttle:20,1');
+Route::post('/contact', [MessageController::class, 'store'])->middleware('throttle:10,1');
 
 // Coupon Routes
 Route::get('/coupons', [CouponController::class, 'getUserCoupons']);
@@ -77,6 +79,7 @@ Route::patch('/delivery/orders/{id}/status', [DeliveryOrderController::class, 'u
 // Customer feedback API
 Route::post('/feedback', [FeedbackController::class, 'store']);
 Route::middleware(['auth:sanctum', 'admin'])->get('/admin/feedbacks', [FeedbackController::class, 'index']);
+Route::middleware(['auth:sanctum', 'admin'])->get('/admin/messages', [MessageController::class, 'index']);
 
 // Admin Customers APIs
 Route::get('/admin/customers', [CustomerController::class, 'index']);

@@ -44,6 +44,7 @@ export default function AdminSidebar() {
     { name: "Payments", path: "/admin/payments", icon: <FiCreditCard size={18} /> },
     { name: "Cash Collection", path: "/admin/cash-collection", icon: <FiDollarSign size={18} /> },
     { name: "Customer Feedback", path: "/admin/feedback", icon: <FiMessageSquare size={18} /> },
+    { name: "View Messages", path: "/admin/messages", icon: <FiMessageSquare size={18} /> },
     { name: "Reports", path: "/admin/reports", icon: <FiBarChart2 size={18} /> },
     { name: "Refunds", path: "/admin/refunds", icon: <FiRotateCcw size={18} /> },
     { name: "Settings", path: "/admin/settings", icon: <FiSettings size={18} /> },
