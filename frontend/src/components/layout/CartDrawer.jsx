@@ -58,8 +58,19 @@ export default function CartDrawer() {
     navigate("/checkout");
   };
 
+  const handleAddProducts = () => {
+    setIsCartOpen(false);
+    navigate("/");
+    window.setTimeout(() => {
+      document.getElementById("products")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-[60] overflow-hidden">
       {/* Semi-transparent Overlay */}
       <div
         className="fixed inset-0 transition-opacity backdrop-blur-[2px]"
@@ -86,8 +97,15 @@ export default function CartDrawer() {
           {/* Cart Items List */}
           <div className="p-6 flex-1 overflow-y-auto space-y-4">
             {(!cartItems || cartItems.length === 0) ? (
-              <div className="text-center py-12 text-gray-500 font-medium">
-                Your cart is currently empty.
+              <div className="flex flex-col items-center justify-center text-center py-12 text-gray-500 font-medium">
+                <p>Your cart is currently empty.</p>
+                <button
+                  type="button"
+                  onClick={handleAddProducts}
+                  className="mt-3 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-700 transition shadow-md cursor-pointer"
+                >
+                  Add Products
+                </button>
               </div>
             ) : (
               cartItems.map((item, index) => {
@@ -183,6 +201,13 @@ export default function CartDrawer() {
           {/* Footer Subtotal & Checkout */}
           {cartItems && cartItems.length > 0 && (
             <div className="p-6 border-t bg-gray-50">
+              <button
+                type="button"
+                onClick={handleAddProducts}
+                className="w-full mb-3 border border-emerald-600 text-emerald-700 py-2 rounded-lg text-sm font-bold hover:bg-emerald-50 transition cursor-pointer"
+              >
+                Add More Products
+              </button>
               <div className="flex justify-between text-lg font-bold text-gray-800 mb-4">
                 <span>Subtotal:</span>
                 <span className="text-emerald-700">৳{subtotal.toFixed(2)}</span>

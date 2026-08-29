@@ -38,16 +38,18 @@ export default function OrdersPage() {
   const [cancellationOrder, setCancellationOrder] = useState(null);
   const navigate = useNavigate();
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async ({ background = false } = {}) => {
     const currentCustomer = getCurrentCustomer();
     if (!currentCustomer.id) {
-      setOrders([]);
-      setLoading(false);
+      if (!background) {
+        setOrders([]);
+        setLoading(false);
+      }
       return;
     }
 
     try {
-      setLoading(true);
+      if (!background) setLoading(true);
       const token = localStorage.getItem("token");
       const response = await axios.get(ORDERS_URL, {
         params: { customer_id: currentCustomer.id },
@@ -61,20 +63,21 @@ export default function OrdersPage() {
       setOrders(customerOrders);
     } catch (error) {
       console.error("Error fetching customer orders:", error);
-      setOrders([]);
+      if (!background) setOrders([]);
     } finally {
-      setLoading(false);
+      if (!background) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     const initialFetch = window.setTimeout(fetchOrders, 0);
-    const statusRefresh = window.setInterval(fetchOrders, 20000);
-    window.addEventListener("focus", fetchOrders);
+    const refreshOrders = () => fetchOrders({ background: true });
+    const statusRefresh = window.setInterval(refreshOrders, 20000);
+    window.addEventListener("focus", refreshOrders);
     return () => {
       window.clearTimeout(initialFetch);
       window.clearInterval(statusRefresh);
-      window.removeEventListener("focus", fetchOrders);
+      window.removeEventListener("focus", refreshOrders);
     };
   }, [fetchOrders]);
 

@@ -10,6 +10,7 @@ export default function ProductGrid() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [suggestion, setSuggestion] = useState(null);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
 
@@ -34,6 +35,7 @@ export default function ProductGrid() {
       try {
         setLoading(true);
         setError("");
+        setSuggestion(null);
         const response = await axios.get("http://127.0.0.1:8000/api/products", {
           params: {
             paginate: 1,
@@ -51,10 +53,12 @@ export default function ProductGrid() {
           last_page: response.data?.last_page || 1,
           total: response.data?.total || 0,
         });
+        setSuggestion(response.data?.suggestion || null);
       } catch (requestError) {
         if (!axios.isCancel(requestError)) {
           console.error("Error fetching products from database:", requestError);
           setProducts([]);
+          setSuggestion(null);
           setError("Unable to load products. Please try again.");
         }
       } finally {
@@ -81,6 +85,10 @@ export default function ProductGrid() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleSuggestionClick = () => {
+    if (suggestion && setSearchQuery) setSearchQuery(suggestion);
+  };
+
   const pageNumbers = useMemo(() => {
     const start = Math.max(1, pagination.current_page - 2);
     const end = Math.min(pagination.last_page, start + 4);
@@ -94,7 +102,7 @@ export default function ProductGrid() {
   };
 
   return (
-    <section ref={sectionRef} className="-mt-10 lg:-mt-12 px-4 scroll-mt-24 relative z-10">
+    <section id="products" ref={sectionRef} className="-mt-10 lg:-mt-12 px-4 scroll-mt-24 relative z-10">
       {/* Title Section */}
       <div className="flex flex-col items-center text-center mb-10 relative">
         <h2 className="text-3xl font-bold text-gray-800">
@@ -105,11 +113,9 @@ export default function ProductGrid() {
             : "All Products"}
         </h2>
         <p className="text-gray-500 mt-2">
-          {searchQuery
-            ? `Found ${pagination.total} items matching your search`
-            : selectedCategory && selectedCategory !== "All"
+            {error || (!suggestion && (searchQuery
             ? `${pagination.total} products in ${selectedCategory}`
-            : "Fresh products specially selected for you"}
+              : `No products found in "${selectedCategory}".`))}
         </p>
 
         {/* Back to Home button on active search */}
@@ -149,11 +155,26 @@ export default function ProductGrid() {
         </>
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-          <p className="text-gray-500 text-lg font-medium">
-            {error || (searchQuery
-              ? `No products found matching "${searchQuery}".`
-              : `No products found in "${selectedCategory}".`)}
-          </p>
+          {searchQuery && suggestion && !error && (
+            <p className="text-gray-600 text-lg font-medium mb-2">
+              No products found for &apos;{searchQuery}&apos;. Did you mean{" "}
+              <button
+                type="button"
+                onClick={handleSuggestionClick}
+                className="font-bold text-emerald-700 underline decoration-2 underline-offset-2 hover:text-emerald-900"
+              >
+                {suggestion}
+              </button>
+              ?
+            </p>
+          )}
+          {!suggestion && (
+            <p className="text-gray-500 text-lg font-medium">
+              {error || (searchQuery
+                ? `No products found matching "${searchQuery}".`
+                : `No products found in "${selectedCategory}".`)}
+            </p>
+          )}
           {searchQuery && (
             <button
               onClick={handleBackToHome}

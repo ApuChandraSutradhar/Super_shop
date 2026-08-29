@@ -158,7 +158,7 @@ export default function Navbar() {
     e.preventDefault();
     if (!term.trim()) return;
 
-    setSearchQuery(term);
+    setSearchQuery(term.trim());
 
     setTimeout(() => {
       const productSection =

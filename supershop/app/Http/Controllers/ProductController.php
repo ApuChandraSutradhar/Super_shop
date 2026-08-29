@@ -71,7 +71,14 @@ class ProductController extends Controller
             ->withCount('feedbacks as review');
 
         if ($request->filled('category') && $request->category !== 'All') {
-            $query->where('category', $request->category);
+            $category = strtolower(trim($request->category));
+            $query->where(function ($categoryQuery) use ($category) {
+                $categoryQuery->whereRaw('LOWER(category) = ?', [$category]);
+
+                if (in_array($category, ['vegetables', 'fresh vegetables'], true)) {
+                    $categoryQuery->orWhereRaw("LOWER(category) IN (?, ?)", ['vegetables', 'fresh vegetables']);
+                }
+            });
         }
 
         if ($request->filled('search')) {
@@ -80,15 +87,43 @@ class ProductController extends Controller
         }
 
         $query->latest('id');
+        $suggestion = null;
 
         if ($request->boolean('paginate')) {
-            return response()->json(
-                $query->paginate($request->integer('per_page', 12))->withQueryString(),
-                200
-            );
+            $products = $query->paginate($request->integer('per_page', 12))->withQueryString();
+
+            if ($products->isEmpty() && isset($search) && $search !== '') {
+                $suggestion = $this->findSearchSuggestion($search);
+            }
+
+            return response()->json(array_merge($products->toArray(), [
+                'suggestion' => $suggestion,
+            ]), 200);
         }
 
         return response()->json($query->get(), 200);
+    }
+
+    private function findSearchSuggestion(string $search): ?string
+    {
+        $normalizedSearch = strtolower($search);
+        $closestWord = null;
+        $closestDistance = PHP_INT_MAX;
+
+        foreach (Product::query()->whereNotNull('name')->distinct()->pluck('name') as $name) {
+            $nameWords = preg_split('/[^[:alnum:]]+/', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            foreach ($nameWords as $nameWord) {
+                $distance = levenshtein($normalizedSearch, strtolower($nameWord));
+
+                if ($distance < $closestDistance) {
+                    $closestDistance = $distance;
+                    $closestWord = $nameWord;
+                }
+            }
+        }
+
+        return $closestDistance <= 3 ? $closestWord : null;
     }
 
     public function decrementStock($id)

@@ -17,7 +17,7 @@ import { useSearch } from "../../context/SearchContext";
 const categories = [
   { name: "All Categories", value: "All", icon: <FaShoppingBasket /> },
   { name: "Fresh Fruits", value: "Fresh Fruits", icon: <FaAppleAlt /> },
-  { name: "Fresh Vegetables", value: "Vegetables", icon: <FaCarrot /> },
+  { name: "Fresh Vegetables", value: "Fresh Vegetables", icon: <FaCarrot /> },
   { name: "Fish", value: "Fish", icon: <FaFish /> },
   { name: "Meat", value: "Meat", icon: <FaDrumstickBite /> },
   { name: "Grocery", value: "Grocery", icon: <FaShoppingBasket /> },
