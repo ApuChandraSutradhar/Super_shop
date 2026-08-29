@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { useSearch } from "../../context/SearchContext";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
@@ -33,9 +34,13 @@ export default function Navbar() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoginDropdownOpen, setIsLoginDropdownOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [user, setUser] = useState(null);
 
   const dropdownRef = useRef(null);
+  const notificationsRef = useRef(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -61,6 +66,53 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const { data } = await axios.get("http://127.0.0.1:8000/api/notifications", {
+          signal: controller.signal,
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const notificationList = Array.isArray(data?.notifications) ? data.notifications : (Array.isArray(data) ? data : []);
+        setNotifications(notificationList);
+        setUnreadCount(Number(data?.unread_count) || notificationList.filter((notification) => !notification.is_read).length);
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          setNotifications([]);
+          setUnreadCount(0);
+        }
+      }
+    };
+
+    fetchNotifications();
+    const refreshTimer = window.setInterval(fetchNotifications, 5000);
+    window.addEventListener("focus", fetchNotifications);
+    return () => {
+      controller.abort();
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("focus", fetchNotifications);
+    };
+  }, [user]);
+
+  useEffect(() => {
     setLoginAction(() => {
       setIsLoginDropdownOpen(false);
       setIsAuthOpen(true);
@@ -73,6 +125,34 @@ export default function Navbar() {
     localStorage.removeItem("user");
     setUser(null);
     window.location.reload();
+  };
+
+  const markNotificationsRead = async (notificationIds = []) => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post("http://127.0.0.1:8000/api/notifications/mark-read", notificationIds.length ? { notification_ids: notificationIds } : {}, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      setNotifications((current) => current.map((notification) => notificationIds.length === 0 || notificationIds.includes(notification.id) ? { ...notification, is_read: true } : notification));
+      setUnreadCount((current) => notificationIds.length === 0 ? 0 : Math.max(0, current - notificationIds.length));
+    } catch (error) {
+      console.error("Unable to mark notifications as read:", error);
+    }
+  };
+
+  const openNotification = (notification) => {
+    if (!notification.is_read) markNotificationsRead([notification.id]);
+    setIsNotificationsOpen(false);
+    if (notification.order_id) navigate(`/my-orders#order-${notification.order_id}`);
+  };
+
+  const formatRelativeTime = (value) => {
+    const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
+    if (seconds < 60) return "Just now";
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min${seconds >= 120 ? "s" : ""} ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr${seconds >= 7200 ? "s" : ""} ago`;
+    return `${Math.floor(seconds / 86400)} day${seconds >= 172800 ? "s" : ""} ago`;
   };
 
   const handleSearch = (e) => {
@@ -177,10 +257,16 @@ export default function Navbar() {
               )}
             </button>
 
-            <button className="relative text-2xl text-gray-700 hover:text-[#064e3b] cursor-pointer">
-              <FiBell />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
-            </button>
+            <div className="relative" ref={notificationsRef}>
+              <button onClick={() => setIsNotificationsOpen((open) => !open)} aria-expanded={isNotificationsOpen} aria-label="Customer notifications" className="relative text-2xl text-gray-700 hover:text-[#064e3b] cursor-pointer">
+                <FiBell />
+                {unreadCount > 0 && <span className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">{unreadCount > 99 ? "99+" : unreadCount}</span>}
+              </button>
+              {isNotificationsOpen && <div className="absolute right-0 mt-3 w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3"><div><p className="font-bold text-gray-800">Notifications</p><p className="text-xs text-gray-400">Order and delivery updates</p></div>{unreadCount > 0 && <button onClick={() => markNotificationsRead()} className="text-xs font-bold text-emerald-700 hover:underline">Mark all as read</button>}</div>
+                <div className="max-h-96 overflow-y-auto">{notifications.length ? notifications.map((notification) => <button key={notification.id} onClick={() => openNotification(notification)} className={`block w-full border-b border-gray-50 px-4 py-3 text-left transition hover:bg-emerald-50/60 ${notification.is_read ? "bg-white" : "bg-emerald-50/40"}`}><div className="flex gap-3"><span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${notification.is_read ? "bg-transparent" : "bg-emerald-600"}`} /><div className="min-w-0 flex-1"><p className="text-sm font-bold text-gray-800">{notification.title}</p><p className="mt-0.5 text-xs leading-5 text-gray-600">{notification.message}</p><p className="mt-1 text-[11px] text-gray-400">{formatRelativeTime(notification.created_at)}</p></div></div></button>) : <p className="px-4 py-10 text-center text-sm text-gray-500">No notifications yet.</p>}</div>
+              </div>}
+            </div>
 
             {/* Shopping Cart */}
             <button

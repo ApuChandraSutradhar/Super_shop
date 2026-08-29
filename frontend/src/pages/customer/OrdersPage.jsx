@@ -125,7 +125,7 @@ export default function OrdersPage() {
               const refund = order.refund;
               const canCancel = ["pending", "confirmed", "processing", "packing", "shipping", "shipped"].includes(status) && !refund;
               return (
-                <div key={orderId || index} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div id={orderId ? `order-${orderId}` : undefined} key={orderId || index} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
                   <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-100">
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Order ID</span><p className="text-base font-bold text-gray-800">#{order.order_number || orderId || `ORD-${1000 + index}`}</p></div>
                     <div><span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Date</span><p className="text-sm font-semibold text-gray-600">{order.created_at ? new Date(order.created_at).toLocaleDateString() : order.date || "N/A"}</p></div>

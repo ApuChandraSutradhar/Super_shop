@@ -7,6 +7,7 @@ use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -56,8 +57,18 @@ class DeliveryOrderController extends Controller
             ->where('delivery_person_id', $data['delivery_person_id'])
             ->firstOrFail();
 
+        $statusChanged = $order->order_status !== $data['order_status'];
         $order->order_status = $data['order_status'];
         $order->save();
+
+        if ($statusChanged) {
+            Notification::create([
+                'user_id' => $order->customer_id,
+                'order_id' => $order->order_id,
+                'title' => 'Order Status Updated',
+                'message' => "Your order #{$order->order_number} is now ".ucfirst(str_replace('_', ' ', $order->order_status)).'.',
+            ]);
+        }
 
         $rider = User::findOrFail($data['delivery_person_id']);
         AdminNotification::record(

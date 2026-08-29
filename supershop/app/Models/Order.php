@@ -69,4 +69,9 @@ class Order extends Model
     {
         return $this->hasOne(Refund::class, 'order_id', 'order_id');
     }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'order_id', 'order_id');
+    }
 }

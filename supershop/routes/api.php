@@ -14,6 +14,7 @@ use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\DeliveryRiderController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
@@ -24,6 +25,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/chat/assistant', [ChatAssistantController::class, 'store'])->middleware('throttle:20,1');
 Route::post('/contact', [MessageController::class, 'store'])->middleware('throttle:10,1');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/mark-read', [NotificationController::class, 'markRead']);
+});
 
 // Coupon Routes
 Route::get('/coupons', [CouponController::class, 'getUserCoupons']);

@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -241,6 +242,15 @@ class OrderController extends Controller
             $statusChanged = $order->order_status !== $request->order_status;
             $order->order_status = $request->order_status;
             $order->save();
+
+            if ($statusChanged) {
+                Notification::create([
+                    'user_id' => $order->customer_id,
+                    'order_id' => $order->order_id,
+                    'title' => 'Order Status Updated',
+                    'message' => "Your order #{$order->order_number} is now ".ucfirst(str_replace('_', ' ', $order->order_status)).'.',
+                ]);
+            }
         }
 
         if ($statusChanged && $order->delivery_person_id) {
@@ -272,7 +282,7 @@ class OrderController extends Controller
 
         $order = Order::findOrFail($orderId);
         if ($request->filled('delivery_person_id')) {
-            User::where('id', $request->delivery_person_id)
+            $rider = User::where('id', $request->delivery_person_id)
                 ->where('role', 'delivery')
                 ->where('is_approved', 1)
                 ->firstOrFail();
@@ -295,6 +305,12 @@ class OrderController extends Controller
                 ['order_id' => $order->order_id],
                 $order->delivery_person_id
             );
+            Notification::create([
+                'user_id' => $order->customer_id,
+                'order_id' => $order->order_id,
+                'title' => 'Delivery Person Assigned',
+                'message' => "Delivery person {$rider->name} has been assigned to your order #{$order->order_number}.",
+            ]);
         }
 
         return response()->json(['success' => true, 'order' => $order->load('deliveryPerson')]);
