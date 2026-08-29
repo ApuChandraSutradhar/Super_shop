@@ -1,37 +1,72 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import ProductCard from "./ProductCard";
-import staticProducts from "../../data/products";
 import { useSearch } from "../../context/SearchContext";
 import { useCart } from "../../context/CartContext";
 
 export default function ProductGrid() {
   const { searchQuery, setSearchQuery, selectedCategory, setSelectedCategory } = useSearch();
   const { addToCart } = useCart();
-  const [allProducts, setAllProducts] = useState(staticProducts);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
 
   const sectionRef = useRef(null);
-
-  const fetchDatabaseProducts = async () => {
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/api/products");
-      const apiProducts = Array.isArray(response.data) ? response.data : [];
-
-      const combined = [...staticProducts, ...apiProducts];
-
-      const uniqueProducts = Array.from(
-        new Map(combined.map((item) => [item.id, item])).values()
-      );
-
-      setAllProducts(uniqueProducts);
-    } catch (error) {
-      console.error("Error fetching products from database:", error);
-    }
-  };
+  const previousFilters = useRef("");
+  const normalizedSearch = (searchQuery || "").trim();
+  const filterKey = `${selectedCategory || "All"}|${normalizedSearch}`;
 
   useEffect(() => {
-    fetchDatabaseProducts();
-  }, []);
+    // A changed search/category always starts from page one. Skipping the
+    // request here prevents loading a stale page for the new filter.
+    if (previousFilters.current !== filterKey) {
+      previousFilters.current = filterKey;
+      if (page !== 1) {
+        setPage(1);
+        return undefined;
+      }
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await axios.get("http://127.0.0.1:8000/api/products", {
+          params: {
+            paginate: 1,
+            per_page: 12,
+            page,
+            ...(selectedCategory && selectedCategory !== "All" ? { category: selectedCategory } : {}),
+            ...(normalizedSearch ? { search: normalizedSearch } : {}),
+          },
+          signal: controller.signal,
+        });
+
+        setProducts(Array.isArray(response.data?.data) ? response.data.data : []);
+        setPagination({
+          current_page: response.data?.current_page || 1,
+          last_page: response.data?.last_page || 1,
+          total: response.data?.total || 0,
+        });
+      } catch (requestError) {
+        if (!axios.isCancel(requestError)) {
+          console.error("Error fetching products from database:", requestError);
+          setProducts([]);
+          setError("Unable to load products. Please try again.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [filterKey, normalizedSearch, page, selectedCategory]);
 
   useEffect(() => {
     if (selectedCategory) {
@@ -46,19 +81,17 @@ export default function ProductGrid() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const filteredProducts = allProducts.filter((product) => {
-    const matchesCategory =
-      !selectedCategory ||
-      selectedCategory === "All" ||
-      (product.category || "").toLowerCase().trim() ===
-        selectedCategory.toLowerCase().trim();
+  const pageNumbers = useMemo(() => {
+    const start = Math.max(1, pagination.current_page - 2);
+    const end = Math.min(pagination.last_page, start + 4);
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }, [pagination]);
 
-    const matchesSearch = (product.name || "")
-      .toLowerCase()
-      .includes((searchQuery || "").toLowerCase());
-
-    return matchesCategory && matchesSearch;
-  });
+  const changePage = (nextPage) => {
+    if (nextPage < 1 || nextPage > pagination.last_page || nextPage === page) return;
+    setPage(nextPage);
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <section ref={sectionRef} className="-mt-10 lg:-mt-12 px-4 scroll-mt-24 relative z-10">
@@ -73,9 +106,9 @@ export default function ProductGrid() {
         </h2>
         <p className="text-gray-500 mt-2">
           {searchQuery
-            ? `Found ${filteredProducts.length} items matching your search`
+            ? `Found ${pagination.total} items matching your search`
             : selectedCategory && selectedCategory !== "All"
-            ? `Showing products for ${selectedCategory}`
+            ? `${pagination.total} products in ${selectedCategory}`
             : "Fresh products specially selected for you"}
         </p>
 
@@ -91,22 +124,35 @@ export default function ProductGrid() {
       </div>
 
       {/* Product List Grid */}
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" aria-label="Loading products">
+          {Array.from({ length: 8 }, (_, index) => <div key={index} className="h-80 animate-pulse rounded-3xl bg-gray-100" />)}
+        </div>
+      ) : products.length > 0 ? (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product, index) => (
+          {products.map((product) => (
             <ProductCard
-              key={`${product.id}-${index}`}
+              key={product.id}
               product={product}
               onAddToCart={() => addToCart(product.id)}
             />
           ))}
         </div>
+        {pagination.last_page > 1 && (
+          <nav className="mt-10 flex flex-wrap items-center justify-center gap-2" aria-label="Product pagination">
+            <button type="button" onClick={() => changePage(page - 1)} disabled={page === 1} className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-emerald-600 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+            {pageNumbers.map((pageNumber) => <button key={pageNumber} type="button" onClick={() => changePage(pageNumber)} aria-current={pageNumber === page ? "page" : undefined} className={`h-10 min-w-10 rounded-lg px-3 text-sm font-bold transition ${pageNumber === page ? "bg-emerald-600 text-white" : "border border-gray-200 text-gray-600 hover:border-emerald-600 hover:text-emerald-700"}`}>{pageNumber}</button>)}
+            <button type="button" onClick={() => changePage(page + 1)} disabled={page === pagination.last_page} className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-emerald-600 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+          </nav>
+        )}
+        </>
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
           <p className="text-gray-500 text-lg font-medium">
-            {searchQuery
+            {error || (searchQuery
               ? `No products found matching "${searchQuery}".`
-              : `No products found in "${selectedCategory}".`}
+              : `No products found in "${selectedCategory}".`)}
           </p>
           {searchQuery && (
             <button

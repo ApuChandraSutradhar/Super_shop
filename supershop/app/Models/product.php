@@ -18,4 +18,9 @@ class Product extends Model
         'description',
         'image'
     ];
+
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class, 'product_id', 'id');
+    }
 }

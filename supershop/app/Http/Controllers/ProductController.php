@@ -57,10 +57,35 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::query();
+        $request->validate([
+            'category' => ['nullable', 'string', 'max:100'],
+            'search' => ['nullable', 'string', 'max:100'],
+            'paginate' => ['nullable', 'boolean'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:48'],
+        ]);
 
-        if ($request->has('category') && $request->category != 'All') {
+        // Expose only aggregate review data to shoppers. Individual feedback
+        // remains available to the admin feedback screen.
+        $query = Product::query()
+            ->withAvg('feedbacks as rating', 'rating_stars')
+            ->withCount('feedbacks as review');
+
+        if ($request->filled('category') && $request->category !== 'All') {
             $query->where('category', $request->category);
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->string('search')->value());
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $query->latest('id');
+
+        if ($request->boolean('paginate')) {
+            return response()->json(
+                $query->paginate($request->integer('per_page', 12))->withQueryString(),
+                200
+            );
         }
 
         return response()->json($query->get(), 200);

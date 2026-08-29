@@ -6,7 +6,6 @@ import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useToast } from "../../context/ToastContext";
 import AuthModal from "./AuthModal";
-import CartDrawer from "./CartDrawer";
 import SidebarDrawer from "../SidebarDrawer";
 
 import {
@@ -376,8 +375,6 @@ export default function Navbar() {
         )}
       </nav>
 
-      {/* Cart Drawer & Sidebar Drawer */}
-      <CartDrawer />
       <SidebarDrawer
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

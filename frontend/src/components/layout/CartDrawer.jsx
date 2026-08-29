@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
@@ -13,6 +13,43 @@ export default function CartDrawer() {
   } = useCart();
 
   const navigate = useNavigate();
+  const [quantityInputs, setQuantityInputs] = useState({});
+
+  // Keep the editable fields in sync after an add, update, or cart refresh.
+  useEffect(() => {
+    setQuantityInputs(
+      (cartItems || []).reduce((inputs, item, index) => {
+        const itemId = item?.cart_item_id || item?.id || index;
+        inputs[itemId] = String(item?.quantity || 1);
+        return inputs;
+      }, {})
+    );
+  }, [cartItems]);
+
+  const setQuantityInput = (itemId, value) => {
+    // Allow an empty field while the customer is replacing a number, but no
+    // non-numeric characters or fractional quantities.
+    if (value === "" || /^\d+$/.test(value)) {
+      setQuantityInputs((previous) => ({ ...previous, [itemId]: value }));
+    }
+  };
+
+  const commitQuantity = (itemId, currentQuantity) => {
+    const enteredValue = quantityInputs[itemId];
+    const quantity = Number.parseInt(enteredValue, 10);
+
+    if (!Number.isSafeInteger(quantity) || quantity < 1) {
+      setQuantityInputs((previous) => ({
+        ...previous,
+        [itemId]: String(currentQuantity),
+      }));
+      return;
+    }
+
+    if (quantity !== currentQuantity) {
+      updateQuantity(itemId, quantity);
+    }
+  };
 
   if (!isCartOpen) return null;
 
@@ -54,7 +91,7 @@ export default function CartDrawer() {
               </div>
             ) : (
               cartItems.map((item, index) => {
-                const itemId = item?.cart_item_id || index;
+                const itemId = item?.cart_item_id || item?.id || index;
                 const product = item?.product || {};
                 const imageUrl = product?.image_url || product?.image || "https://via.placeholder.com/80";
 
@@ -103,9 +140,21 @@ export default function CartDrawer() {
                         >
                           -
                         </button>
-                        <span className="font-semibold text-sm px-3 py-1 bg-gray-50 border rounded">
-                          {item?.quantity || 1}
-                        </span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={quantityInputs[itemId] ?? String(item?.quantity || 1)}
+                          onChange={(event) => setQuantityInput(itemId, event.target.value)}
+                          onBlur={() => commitQuantity(itemId, item?.quantity || 1)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.currentTarget.blur();
+                            }
+                          }}
+                          aria-label={`Quantity for ${product?.name || "product"}`}
+                          className="w-14 font-semibold text-sm px-2 py-1 bg-gray-50 border rounded text-center focus:border-emerald-500 focus:outline-none"
+                        />
                         <button
                           type="button"
                           onClick={() => updateQuantity(itemId, (item?.quantity || 1) + 1)}

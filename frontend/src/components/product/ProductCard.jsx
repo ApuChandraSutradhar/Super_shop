@@ -21,6 +21,9 @@ export default function ProductCard({ product, onAddToCart }) {
       : originalPrice;
 
   const isAvailable = stockQty > 0;
+  const reviewCount = Number(product?.review ?? product?.feedbacks_count ?? 0);
+  const ratingValue = Number(product?.rating ?? product?.feedbacks_avg_rating_stars);
+  const hasRatings = reviewCount > 0 && Number.isFinite(ratingValue);
 
   const productId = product?.id || product?._id;
   const isFavorite = isInWishlist(productId);
@@ -87,13 +90,20 @@ export default function ProductCard({ product, onAddToCart }) {
           </h3>
 
           <div className="flex items-center gap-1 mt-2">
-            <FiStar className="text-yellow-400 fill-yellow-400" size={15} />
-            <span className="font-bold text-sm text-gray-800">
-              {product?.rating || "4.5"}
-            </span>
-            <span className="text-gray-400 text-xs">
-              ({product?.review || "10"})
-            </span>
+            <FiStar
+              className={hasRatings ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+              size={15}
+            />
+            {hasRatings ? (
+              <>
+                <span className="font-bold text-sm text-gray-800">
+                  {ratingValue.toFixed(1)}
+                </span>
+                <span className="text-gray-400 text-xs">({reviewCount})</span>
+              </>
+            ) : (
+              <span className="text-gray-400 text-xs">No ratings yet</span>
+            )}
           </div>
         </div>
       </div>
