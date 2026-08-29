@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FiTrendingUp, FiAlertTriangle } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { FiTrendingUp, FiAlertTriangle, FiEdit } from "react-icons/fi";
 import {
   AreaChart,
   Area,
@@ -21,6 +22,7 @@ const asArray = (value) => Array.isArray(value) ? value : [];
 const numberOrZero = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   // 1. Stat Box Data
   const [stats, setStats] = useState(emptyStats);
 
@@ -64,7 +66,7 @@ export default function Dashboard() {
         setMonthlyOrdersData(asArray(dashboard.monthly_orders).map((item) => ({ month: item?.month || "", orders: numberOrZero(item?.orders) })));
         setCategoryData(asArray(dashboard.category_sales).map((item, index) => ({ name: item?.name || "Others", value: numberOrZero(item?.value), amount: numberOrZero(item?.amount), color: item?.color || ["#10b981", "#f97316", "#3b82f6"][index % 3] })));
         setRecentOrders(asArray(dashboard.recent_orders).map((order) => ({ id: order?.order_number || `#${order?.order_id ?? "-"}`, date: order?.created_at || "—", status: order?.order_status || "Unknown", price: numberOrZero(order?.payable_amount) })));
-        setLowStockProducts(asArray(dashboard.low_stock_products).map((product) => ({ name: product?.name || "Unnamed product", weight: "", stockLeft: `${numberOrZero(product?.stock)} left` })));
+        setLowStockProducts(asArray(dashboard.low_stock_products).map((product) => ({ id: product?.id, name: product?.name || "Unnamed product", weight: "", stockLeft: `${numberOrZero(product?.stock)} left` })));
         const cash = dashboard.pending_cod_cash ?? {};
         setPendingCash({ total: numberOrZero(cash.total), riders: asArray(cash.riders) });
         setLoadError("");
@@ -277,9 +279,21 @@ export default function Dashboard() {
                   <h4 className="font-semibold text-gray-800 text-sm">{item.name}</h4>
                   <p className="text-xs text-gray-400">{item.weight}</p>
                 </div>
-                <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
-                  {item.stockLeft}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-bold border border-orange-100">
+                    {item.stockLeft}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => item.id && navigate(`/admin/products?edit=${item.id}`)}
+                    disabled={!item.id}
+                    aria-label={`Edit ${item.name}`}
+                    title="Edit product stock"
+                    className="inline-flex items-center gap-1 rounded-lg border border-blue-100 px-2 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <FiEdit size={13} /> Edit
+                  </button>
+                </div>
               </div>
             ))}
           </div>

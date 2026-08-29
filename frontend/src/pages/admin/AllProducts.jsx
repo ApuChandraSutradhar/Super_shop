@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FiEdit, FiTrash2, FiPlus, FiSearch, FiX } from "react-icons/fi";
 
 export default function AllProducts() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,6 +56,17 @@ export default function AllProducts() {
     setEditImageFile(null);
     setIsEditOpen(true);
   };
+
+  useEffect(() => {
+    const productId = new URLSearchParams(location.search).get("edit");
+    if (!productId || loading) return;
+
+    const product = products.find((item) => String(item.id) === productId);
+    if (product) {
+      handleEditClick(product);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.pathname, location.search, loading, navigate, products]);
 
   // 4. Handle Edit Form Submit
   const handleEditSubmit = async (e) => {
