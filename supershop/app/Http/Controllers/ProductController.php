@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -100,6 +101,61 @@ class ProductController extends Controller
                 'suggestion' => $suggestion,
             ]), 200);
         }
+
+        return response()->json($query->get(), 200);
+    }
+
+    public function trending(Request $request)
+    {
+        $request->validate([
+            'limit' => ['nullable', 'integer', 'min:4', 'max:8'],
+        ]);
+
+        $sales = DB::table('order_items')
+            ->join('orders', 'orders.order_id', '=', 'order_items.order_id')
+            ->where('orders.order_status', '!=', 'cancelled')
+            ->select('order_items.product_id', DB::raw('SUM(order_items.quantity) as sales_count'))
+            ->groupBy('order_items.product_id');
+
+        $products = Product::query()
+            ->withAvg('feedbacks as rating', 'rating_stars')
+            ->withCount('feedbacks as review')
+            ->leftJoinSub($sales, 'product_sales', function ($join) {
+                $join->on('products.id', '=', 'product_sales.product_id');
+            })
+            ->select('products.*', DB::raw('COALESCE(product_sales.sales_count, 0) as sales_count'))
+            ->orderByDesc('sales_count')
+            ->latest('products.id')
+            ->limit($request->integer('limit', 8))
+            ->get();
+
+        return response()->json($products, 200);
+    }
+
+    public function recommended(Request $request)
+    {
+        $user = $request->user();
+
+        $preferredCategory = DB::table('order_items')
+            ->join('orders', 'orders.order_id', '=', 'order_items.order_id')
+            ->join('products', 'products.id', '=', 'order_items.product_id')
+            ->where('orders.customer_id', $user->id)
+            ->where('orders.order_status', '!=', 'cancelled')
+            ->whereNotNull('products.category')
+            ->select('products.category', DB::raw('SUM(order_items.quantity) as category_sales'))
+            ->groupBy('products.category')
+            ->orderByDesc('category_sales')
+            ->value('category');
+
+        $query = Product::query()
+            ->withAvg('feedbacks as rating', 'rating_stars')
+            ->withCount('feedbacks as review')
+            ->when($preferredCategory, function ($productQuery) use ($preferredCategory) {
+                $productQuery->where('category', $preferredCategory);
+            })
+            ->orderByDesc('rating')
+            ->latest('id')
+            ->limit(8);
 
         return response()->json($query->get(), 200);
     }

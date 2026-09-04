@@ -102,9 +102,9 @@ export default function ProductGrid() {
   };
 
   return (
-    <section id="products" ref={sectionRef} className="-mt-10 lg:-mt-12 px-4 scroll-mt-24 relative z-10">
+    <section id="products" ref={sectionRef} className="mt-2 lg:mt-3 px-4 scroll-mt-24 relative z-10">
       {/* Title Section */}
-      <div className="flex flex-col items-center text-center mb-10 relative">
+      <div className="flex flex-col items-center text-center mb-6 relative">
         <h2 className="text-3xl font-bold text-gray-800">
           {searchQuery
             ? `Search Results for "${searchQuery}"`
@@ -115,7 +115,7 @@ export default function ProductGrid() {
         <p className="text-gray-500 mt-2">
             {error || (!suggestion && (searchQuery
             ? `${pagination.total} products in ${selectedCategory}`
-              : `No products found in "${selectedCategory}".`))}
+            : `${products.length > 0 ? "Products" : "No products"} found in "${selectedCategory}".`))}
         </p>
 
         {/* Back to Home button on active search */}

@@ -25,6 +25,7 @@ export default function AuthModal({ closeModal, onAuthenticated }) {
       const res = await axios.post(endpoint, formData);
       localStorage.setItem("token", res.data.token ?? res.data.access_token ?? "");
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      window.dispatchEvent(new Event("auth-changed"));
       if (isLogin) showLoginSuccess();
       onAuthenticated?.(res.data.user);
       closeModal();

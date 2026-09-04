@@ -102,6 +102,8 @@ Route::post('/register', [RegisterController::class, 'register']);
 // Product Routes
 Route::post('/products', [ProductController::class, 'store']);
 Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/trending', [ProductController::class, 'trending']);
+Route::middleware('auth:sanctum')->get('/products/recommended', [ProductController::class, 'recommended']);
 Route::post('/products/{id}/buy', [ProductController::class, 'decrementStock']);
 Route::match(['post', 'put'], '/products/{id}', [ProductController::class, 'update']);
 Route::delete('/products/{id}', [ProductController::class, 'destroy']);
