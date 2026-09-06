@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminNotificationController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
@@ -98,6 +99,8 @@ Route::delete('/cart/remove/{cart_item_id}', [CartController::class, 'removeItem
 
 // Auth Routes
 Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/password/forgot', [ForgotPasswordController::class, 'requestOtp'])->middleware('throttle:5,1');
+Route::post('/password/reset', [ForgotPasswordController::class, 'resetPassword'])->middleware('throttle:10,1');
 
 // Product Routes
 Route::post('/products', [ProductController::class, 'store']);
