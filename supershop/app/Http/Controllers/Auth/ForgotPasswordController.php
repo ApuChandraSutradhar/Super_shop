@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 class ForgotPasswordController extends Controller
 {
@@ -17,7 +18,16 @@ class ForgotPasswordController extends Controller
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
+            'role' => ['nullable', Rule::in(['customer', 'delivery'])],
         ]);
+
+        $userQuery = User::where('email', $validated['email']);
+        if (! empty($validated['role'])) {
+            $userQuery->where('role', $validated['role']);
+        }
+        if (! $userQuery->exists()) {
+            return response()->json(['status' => false, 'message' => 'No account was found for that email address.'], 422);
+        }
 
         $otp = (string) random_int(100000, 999999);
 
@@ -44,9 +54,19 @@ class ForgotPasswordController extends Controller
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
+            'role' => ['nullable', Rule::in(['customer', 'delivery'])],
             'otp' => ['required', 'digits:6'],
             'password' => ['required', 'confirmed', Password::min(6)],
         ]);
+
+        $userQuery = User::where('email', $validated['email']);
+        if (! empty($validated['role'])) {
+            $userQuery->where('role', $validated['role']);
+        }
+        $user = $userQuery->first();
+        if (! $user) {
+            return response()->json(['status' => false, 'message' => 'No account was found for that email address.'], 422);
+        }
 
         $resetToken = DB::table('password_reset_tokens')
             ->where('email', $validated['email'])
@@ -59,9 +79,7 @@ class ForgotPasswordController extends Controller
             ], 422);
         }
 
-        User::where('email', $validated['email'])->update([
-            'password' => Hash::make($validated['password']),
-        ]);
+        $user->update(['password' => Hash::make($validated['password'])]);
 
         DB::table('password_reset_tokens')->where('email', $validated['email'])->delete();
 
