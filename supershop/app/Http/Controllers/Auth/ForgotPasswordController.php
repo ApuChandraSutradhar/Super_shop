@@ -18,7 +18,7 @@ class ForgotPasswordController extends Controller
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
-            'role' => ['nullable', Rule::in(['customer', 'delivery'])],
+            'role' => ['nullable', Rule::in(['customer', 'delivery', 'admin'])],
         ]);
 
         $userQuery = User::where('email', $validated['email']);
@@ -54,7 +54,7 @@ class ForgotPasswordController extends Controller
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'exists:users,email'],
-            'role' => ['nullable', Rule::in(['customer', 'delivery'])],
+            'role' => ['nullable', Rule::in(['customer', 'delivery', 'admin'])],
             'otp' => ['required', 'digits:6'],
             'password' => ['required', 'confirmed', Password::min(6)],
         ]);
