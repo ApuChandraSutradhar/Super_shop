@@ -65,7 +65,7 @@ export default function Checkout() {
   const [finalGrandTotal, setFinalGrandTotal] = useState(0);
   const [confirmedItems, setConfirmedItems] = useState([]);
 
-  const deliveryFee = formData.city === "Dhaka" ? 60 : formData.city === "Outside Dhaka" ? 120 : 0;
+  const deliveryFee = ["Dhaka North City", "Dhaka South City"].includes(formData.city) ? 60 : 0;
   
   const grandTotal = Math.max(0, subtotal + deliveryFee - discountAmount);
 

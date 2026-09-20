@@ -105,7 +105,7 @@ export default function ProductGrid() {
     <section id="products" ref={sectionRef} className="mt-2 lg:mt-3 px-4 scroll-mt-24 relative z-10">
       {/* Title Section */}
       <div className="flex flex-col items-center text-center mb-6 relative">
-        <h2 className="text-3xl font-bold text-gray-800">
+        <h2 className="text-3xl font-bold text-[#000] tracking-tight sm:text-4xl">
           {searchQuery
             ? `Search Results for "${searchQuery}"`
             : selectedCategory && selectedCategory !== "All"

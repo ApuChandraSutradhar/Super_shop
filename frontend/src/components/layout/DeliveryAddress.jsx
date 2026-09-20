@@ -8,7 +8,7 @@ export default function DeliveryAddress({ formData, handleInputChange, onNext })
       return;
     }
     if (!formData.city) {
-      alert("Please select your Delivery Area (Inside or Outside Dhaka)!");
+      alert("Please select your Delivery Area!");
       return;
     }
     onNext();
@@ -49,7 +49,7 @@ export default function DeliveryAddress({ formData, handleInputChange, onNext })
           </div>
 
           <div>
-            <label className="block font-medium text-gray-700 mb-1">City / District *</label>
+            <label className="block font-medium text-gray-700 mb-1">City Area *</label>
             <select
               name="city"
               value={formData.city || ""}
@@ -60,8 +60,8 @@ export default function DeliveryAddress({ formData, handleInputChange, onNext })
               <option value="" disabled hidden>
                 -- Select Area --
               </option>
-              <option value="Dhaka">Inside Dhaka (৳60)</option>
-              <option value="Outside Dhaka">Outside Dhaka (৳120)</option>
+              <option value="Dhaka North City">Dhaka North City (৳60)</option>
+              <option value="Dhaka South City">Dhaka South City (৳60)</option>
             </select>
           </div>
         </div>

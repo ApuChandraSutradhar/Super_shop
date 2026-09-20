@@ -62,6 +62,13 @@ export default function OrderConfirmation({ orderId, orderDatabaseId, customerId
               <span className="font-semibold">৳{(Number(item.unit_price ?? item.price ?? 0) * Number(item.quantity || 1)).toFixed(2)}</span>
             </div>
           ))}
+          {/* Dynamic Delivery Fee Row */}
+          <div className="flex justify-between items-center py-2 border-t border-gray-200 mt-3 text-gray-700">
+          <span className="font-semibold">
+          Delivery Fee {formData?.city ? `(${formData.city})` : ""}:
+          </span>
+          <span className="font-bold">৳60.00</span>
+          </div>
         </div>
         <div className="border-t border-gray-200 pt-3 mt-3">
           <p className="font-bold text-gray-700">Full Delivery Address</p>
